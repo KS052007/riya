@@ -1,0 +1,21 @@
+Binary Minds Ideathon
+1. Sustainable E-Waste Management 
+Electronic waste is one of the fastest-growing waste streams globally. Poor collection systems, low public awareness, and inefficient recycling practices result in environmental pollution and the loss of valuable resources. How might we create a sustainable ecosystem that encourages responsible disposal, efficient collection, and effective recycling of electronic waste? 
+
+2. Building Resilient Disaster Response Systems 
+During natural and human-made disasters, delays in information flow, resource allocation, and coordination often increase casualties and economic losses. How might we improve preparedness, response, and recovery by enabling faster decision-making, better coordination, and more effective use of available resources? 
+
+3. Improving Access to Everyday Mental Well-being 
+Mental health challenges are increasing, yet many people do not seek support because of stigma, limited access to professionals, high costs, or lack of awareness. How might we make mental well-being support more accessible, inclusive, and available at the right time while respecting user privacy and trust?
+
+4. Reducing Food Waste While Addressing Hunger 
+Large quantities of safe, edible food are discarded every day while many individuals and communities struggle with food insecurity. The lack of efficient coordination between food surplus and food demand leads to avoidable waste. How might we reduce food wastage by improving the redistribution of surplus food to those who need it most? 
+
+5. Strengthening Community Support for the Elderly 
+Many elderly individuals live alone or lack access to reliable support for routine tasks, healthcare visits, emergency situations, and social interaction. How might we strengthen community participation and improve access to timely assistance while ensuring safety, dignity, and independence for senior citizens? 
+
+6. Empowering Farmers with Better Market Intelligence 
+Farmers often make selling decisions without reliable information about market demand, price fluctuations, or future trends, leading to financial uncertainty and post-harvest losses. How might we enable farmers to make informed decisions that improve profitability and reduce avoidable losses?
+
+7. OPEN THEME
+	Anything
