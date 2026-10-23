@@ -163,3 +163,20 @@ body.build-modal-open { overflow:hidden; }
 @keyframes contribution-overlay-in { from { opacity:0; } to { opacity:1; } }
 @keyframes contribution-modal-in { from { opacity:0;transform:translateY(12px) scale(.99); } to { opacity:1;transform:translateY(0) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .contribution-overlay,.contribution-modal { animation:none; } }
+
+/* The overlay owns scrolling so the full contribution form works with wheel and touch input. */
+.contribution-overlay{display:block;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:clamp(1rem,4vh,2.5rem) 1rem}
+.contribution-modal{width:min(100%,820px);max-height:none;margin:0 auto 2rem;overflow:visible;border-radius:18px;background:#10131d}
+.contribution-modal-header{position:sticky;top:0;z-index:3;padding:1.4rem clamp(1.15rem,4vw,2.25rem);border-radius:18px 18px 0 0;background:rgba(16,19,29,.96);backdrop-filter:blur(14px)}
+.contribution-modal-header h2{max-width:680px;font-size:clamp(1.35rem,3vw,2rem);line-height:1.18}
+.contribution-form{overflow:visible;gap:1.25rem;padding:clamp(1.1rem,4vw,2.25rem)}
+.contribution-fields-grid label{gap:.55rem}
+.contribution-fields-grid label>span{display:block;line-height:1.4}
+.contribution-fields-grid label b{margin-left:.12rem}
+.contribution-fields-grid input,.contribution-fields-grid textarea{font-size:.94rem}
+.contribution-fields-grid input{min-height:48px}
+.contribution-fields-grid textarea{min-height:128px}
+.contribution-guideline-callout{padding:1.1rem 1.25rem;background:rgba(16,30,48,.68)}
+.contribution-form-actions{padding-top:1rem;border-top:1px solid rgba(148,163,184,.14)}
+.contribution-close{flex:0 0 42px}
+@media(max-width:600px){.contribution-overlay{padding:.5rem}.contribution-modal{margin-bottom:.5rem;border-radius:14px}.contribution-modal-header{border-radius:14px 14px 0 0;padding:1rem}.contribution-modal-header h2{font-size:1.3rem}.contribution-form{padding:1rem}.contribution-fields-grid{grid-template-columns:1fr}.contribution-field-wide,.contribution-attachment-field{grid-column:auto}.contribution-form-actions{flex-direction:column-reverse}.contribution-form-actions button{width:100%}}
