@@ -33,6 +33,7 @@
 .admin-bip-project-form input:focus,.admin-bip-project-form textarea:focus,.admin-bip-project-form select:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(59,130,246,.16)}
 .admin-bip-project-form textarea{resize:vertical}
 .admin-bip-project-form label .admin-muted{font-size:.76rem;font-weight:400}
+.admin-bip-project-layout>*{min-width:0}.admin-bip-project-row>div:first-child{min-width:0;overflow-wrap:anywhere}.admin-bip-project-row h3,.admin-bip-project-row p,.admin-bip-project-row small{max-width:100%;overflow-wrap:anywhere;word-break:break-word}.admin-bip-project-row p{white-space:pre-wrap}
 .admin-bip-project-form .admin-editor-actions{justify-content:flex-end}
 @media(max-width:1000px){.admin-bip-project-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.admin-bip-project-row{flex-direction:column}.admin-bip-project-actions{justify-content:flex-end}.admin-bip-tabs{overflow-x:auto}.admin-bip-tabs button{white-space:nowrap}}
