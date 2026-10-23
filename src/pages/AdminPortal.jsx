@@ -236,9 +236,19 @@ export default function AdminPortal() {
     setError('')
     setNotice('')
     try {
-      await request('/api/admin/build-in-public', { method: 'PATCH', body: JSON.stringify({ id, status }) })
-      setNotice(`Contribution request ${status}.`)
+      const result = await request('/api/admin/build-in-public', { method: 'PATCH', body: JSON.stringify({ id, status }) })
+      let nextError = ''
+      let nextNotice = ''
+      if (status === 'accepted' && !result.notification?.sent) {
+        nextError = `Request accepted, but the email was not sent. ${result.notification?.message || 'Try again after checking the email setup.'}`
+      } else if (status === 'accepted') {
+        nextNotice = result.notification?.alreadySent ? 'Request is accepted and its email was already sent.' : 'Request accepted and email sent.'
+      } else {
+        nextNotice = `Contribution request ${status}.`
+      }
       await refreshSubmissions()
+      if (nextError) setError(nextError)
+      if (nextNotice) setNotice(nextNotice)
     } catch (reason) { setError(reason.message) }
     finally { setBusy(false) }
   }
@@ -445,12 +455,14 @@ export default function AdminPortal() {
                 <article className="admin-submission" key={submission.id}>
                   <div className="admin-submission-content">
                     <div className="admin-submission-heading"><span className={`admin-status admin-status-${submission.status}`}>{submission.status}</span><time>{new Date(submission.createdAt).toLocaleDateString()}</time></div>
+                    {submission.status === 'accepted' && <p className={`admin-email-status ${submission.emailNotificationStatus === 'sent' ? 'is-sent' : 'is-failed'}`}>{submission.emailNotificationStatus === 'sent' ? 'Acceptance email sent' : submission.emailNotificationStatus === 'failed' ? `Acceptance email failed: ${submission.emailNotificationError || 'Retry after checking email setup.'}` : 'Acceptance email has not been sent yet.'}</p>}
                     <h2>{submission.fullName}</h2>
                     <p><strong>Project:</strong> {submission.project || 'Binary Minds Open AI Agent Framework'}<br /><strong>Student email:</strong> <a href={`mailto:${submission.studentEmail}`}>{submission.studentEmail}</a></p>
                     <div className="admin-submission-meta"><a href={submission.githubProfile} target="_blank" rel="noreferrer">GitHub profile ↗</a><a href={submission.linkedinProfile} target="_blank" rel="noreferrer">LinkedIn profile ↗</a></div>
                     <h3>Why they want to contribute</h3><p>{submission.motivation}</p>
                     <h3>Contribution idea</h3><p>{submission.contributionIdea}</p>
                     {submission.attachment && <button className="admin-secondary admin-attachment-button" disabled={busy} onClick={() => downloadAttachment(submission)}>Download {submission.attachment.fileName} ({(submission.attachment.size / 1024 / 1024).toFixed(1)} MB)</button>}
+                    {submission.status === 'accepted' && submission.emailNotificationStatus !== 'sent' && <button className="admin-secondary admin-email-retry" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Retry acceptance email</button>}
                     {submission.status !== 'accepted' && <button className="admin-primary" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Accept request</button>}
                     {submission.status !== 'rejected' && <button className="admin-danger-link" disabled={busy} onClick={() => reviewSubmission(submission.id, 'rejected')}>Reject</button>}
                   </div>

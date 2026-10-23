@@ -35,6 +35,8 @@ Set these in local `.env.local` for `vercel dev` and in the Vercel secret manage
 | `SANITY_PROJECT_ID` | Sanity server project ID; defaults to the current project ID |
 | `SANITY_DATASET` | Sanity server dataset; defaults to `production` |
 | `SANITY_API_WRITE_TOKEN` | Server-only Sanity token with minimum required write permissions |
+| `RESEND_API_KEY` | Server-only API key used to send contribution acceptance emails through Resend |
+| `EMAIL_FROM` | Verified sender address, for example `Binary Minds <updates@your-verified-domain.example>` |
 
 Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluator`, and `read_only`. The environment variable bootstraps Super Admin accounts. A signed-in Super Admin can add and remove non-super-admin accounts in Access Management; those accounts are stored in Upstash and are combined with the environment bootstrap accounts. Minds are no longer editable in this portal and remain managed through Sanity. Events, results, and announcements remain Sanity-backed for now. Build in Public projects and their public guidelines are managed by Super Admins and stored in Upstash; only published projects are public. Contribution applications remain private until reviewed, and only Super Admins can accept or reject applicants. Optional PDF/DOC/DOCX attachments are limited to 5 MB and retained in Upstash for 90 days.
 
@@ -47,7 +49,7 @@ Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluat
 5. Create a Sanity API token with the minimum required write access.
 6. Save all values in `.env.local` or the deployment secret manager. Never commit them.
 
-The login API fails closed if the session secret, user record, or rate-limit service is missing. Sanity document writes require the Sanity write token. Build in Public attachment chunks are uploaded through the server to Upstash; application data and files are not exposed on the public site.
+The login API fails closed if the session secret, user record, or rate-limit service is missing. Sanity document writes require the Sanity write token. Build in Public attachment chunks are uploaded through the server to Upstash; application data and files are not exposed on the public site. When a Super Admin accepts a contribution request, the server sends an email through Resend and records its delivery state. Set `RESEND_API_KEY` and `EMAIL_FROM` in Vercel; the sender domain/address must be verified with Resend. If delivery fails, the request remains accepted and the admin can retry the email from the application card.
 
 If the deployed admin page shows “Admin sign-in is not configured,” add `SESSION_SECRET`, `ADMIN_USERS_JSON`, `UPSTASH_REDIS_REST_URL`, and `UPSTASH_REDIS_REST_TOKEN` to the Vercel project's server-side environment settings for the deployment environment, then redeploy. The account hash from a local `.env.local` file is not uploaded by Git and does not configure the deployed site.
 

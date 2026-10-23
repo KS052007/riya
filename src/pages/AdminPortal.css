@@ -19,7 +19,7 @@
 .admin-bip-tabs button.active{border-bottom-color:#60a5fa;color:#dbeafe}
 .admin-bip-tabs button span{display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:20px;background:rgba(148,163,184,.13);font-size:.72rem}
 .admin-bip-project-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);align-items:start;gap:20px}
-.admin-bip-project-row{display:flex;justify-content:space-between;gap:16px;padding:18px 16px;border-top:1px solid rgba(148,163,184,.12)}
+.admin-bip-project-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;padding:18px 16px;border-top:1px solid rgba(148,163,184,.12)}
 .admin-bip-project-row h3{margin:10px 0 6px;font-size:1rem}
 .admin-bip-project-row p{margin:0 0 9px;color:#aab4c3;font-size:.86rem;line-height:1.55}
 .admin-bip-project-row small{color:#8491a5;font-size:.75rem}
@@ -36,4 +36,5 @@
 .admin-bip-project-layout>*{min-width:0}.admin-bip-project-row>div:first-child{min-width:0;overflow-wrap:anywhere}.admin-bip-project-row h3,.admin-bip-project-row p,.admin-bip-project-row small{max-width:100%;overflow-wrap:anywhere;word-break:break-word}.admin-bip-project-row p{white-space:pre-wrap}
 .admin-bip-project-form .admin-editor-actions{justify-content:flex-end}
 @media(max-width:1000px){.admin-bip-project-layout{grid-template-columns:1fr}}
-@media(max-width:560px){.admin-bip-project-row{flex-direction:column}.admin-bip-project-actions{justify-content:flex-end}.admin-bip-tabs{overflow-x:auto}.admin-bip-tabs button{white-space:nowrap}}
+@media(max-width:560px){.admin-bip-project-row{grid-template-columns:minmax(0,1fr)}.admin-bip-project-actions{justify-content:flex-end}.admin-bip-tabs{overflow-x:auto}.admin-bip-tabs button{white-space:nowrap}}
+.admin-email-status{margin:12px 0!important;font-size:.82rem}.admin-email-status.is-sent{color:#a7f3d0}.admin-email-status.is-failed{color:#fecaca}.admin-email-retry{margin:12px 12px 0 0}
