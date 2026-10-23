@@ -164,7 +164,12 @@ export default function AdminPortal() {
 
   function beginProjectEdit(project = null) {
     setEditingProjectId(project?.id || null)
-    setProjectDraft(project ? { ...project, tags: (project.tags || []).join(', ') } : { ...EMPTY_PROJECT })
+    setProjectDraft(project ? {
+      ...project,
+      tags: (project.tags || []).join(', '),
+      repositoryUrl: project.repositoryUrl || '',
+      imageDriveUrl: project.imageDriveUrl || '',
+    } : { ...EMPTY_PROJECT, repositoryUrl: '', imageDriveUrl: '' })
     setError('')
     setNotice('')
   }
@@ -430,6 +435,8 @@ export default function AdminPortal() {
                 <label>Project summary<textarea value={projectDraft.summary} maxLength={1200} rows={4} onChange={event => setProjectDraft({ ...projectDraft, summary: event.target.value })} required /></label>
                 <label>Contribution guidelines<textarea value={projectDraft.guidelines} maxLength={1200} rows={4} onChange={event => setProjectDraft({ ...projectDraft, guidelines: event.target.value })} required /></label>
                 <label>Tags <span className="admin-muted">Separate tags with commas.</span><input value={projectDraft.tags} onChange={event => setProjectDraft({ ...projectDraft, tags: event.target.value })} placeholder="Python, React, AI / ML" /></label>
+                <label>Git repository link <span className="admin-muted">Optional HTTPS link to the project repository.</span><input type="url" value={projectDraft.repositoryUrl || ''} onChange={event => setProjectDraft({ ...projectDraft, repositoryUrl: event.target.value })} placeholder="https://github.com/organization/project" /></label>
+                <label>Project image Google Drive link <span className="admin-muted">Optional. Set the Drive image to “Anyone with the link can view.”</span><input type="url" value={projectDraft.imageDriveUrl || ''} onChange={event => setProjectDraft({ ...projectDraft, imageDriveUrl: event.target.value })} placeholder="https://drive.google.com/file/d/…" /></label>
                 <label>Visibility<select value={projectDraft.status} onChange={event => setProjectDraft({ ...projectDraft, status: event.target.value })}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
                 <div className="admin-editor-actions"><button type="button" className="admin-secondary" onClick={() => beginProjectEdit()}>Clear</button><button className="admin-primary" disabled={busy}>{busy ? 'Saving…' : editingProjectId ? 'Save project' : 'Create project'}</button></div>
               </form>

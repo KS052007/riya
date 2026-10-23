@@ -32,6 +32,7 @@
 .admin-bip-project-form input,.admin-bip-project-form textarea,.admin-bip-project-form select{width:100%;box-sizing:border-box;border:1px solid #303847;border-radius:9px;background:#0b0f16;padding:11px 12px;color:#f8fafc;font:400 .88rem/1.5 Inter,system-ui,sans-serif;outline:none}
 .admin-bip-project-form input:focus,.admin-bip-project-form textarea:focus,.admin-bip-project-form select:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(59,130,246,.16)}
 .admin-bip-project-form textarea{resize:vertical}
+.admin-bip-project-form label .admin-muted{font-size:.76rem;font-weight:400}
 .admin-bip-project-form .admin-editor-actions{justify-content:flex-end}
 @media(max-width:1000px){.admin-bip-project-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.admin-bip-project-row{flex-direction:column}.admin-bip-project-actions{justify-content:flex-end}.admin-bip-tabs{overflow-x:auto}.admin-bip-tabs button{white-space:nowrap}}

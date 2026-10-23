@@ -12,7 +12,7 @@
 | Problem statements/resources | `problemStatements` and details on `siteEvent` | Portal event JSON | Implemented for managed events; legacy JSON fallback remains |
 | Results | Published Sanity `siteResult` records | Portal; public view only shows published records | Implemented; placeholder local results hidden |
 | Announcements | Published Sanity `siteAnnouncement` records | Portal; public banner | Implemented |
-| Build in Public projects | Upstash Redis project records | Super Admin project editor; public page reads published projects | Public title, summary, tags, and contribution guidelines; draft and archived records are private |
+| Build in Public projects | Upstash Redis project records | Super Admin project editor; public page reads published projects | Public title, summary, tags, guidelines, repository link, and optional Drive image link; draft and archived records are private |
 | Build in Public contribution requests | Upstash Redis records and optional PDF/Word attachment chunks | Public application form; Super Admin review | Private application data; admin can accept or reject; each request stores its project ID and title snapshot |
 | Ideathon submissions | External Google Apps Script endpoint | External system | Needs external access; separate from Build in Public |
 | Branding/social links | Defaults and public Vite build variables | Source/deployment config | Verified |

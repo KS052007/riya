@@ -12,6 +12,26 @@ function cleanText(value, limit) {
   return String(value || '').trim().slice(0, limit)
 }
 
+function safeHttpsUrl(value, label) {
+  const input = cleanText(value, 600)
+  if (!input) return ''
+  let parsed
+  try { parsed = new URL(input) } catch { throw new Error(`Enter a valid HTTPS ${label} URL.`) }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) throw new Error(`Enter a valid HTTPS ${label} URL.`)
+  return parsed.toString()
+}
+
+function driveImageUrl(value) {
+  const url = safeHttpsUrl(value, 'Google Drive image')
+  if (!url) return ''
+  const parsed = new URL(url)
+  const id = parsed.hostname === 'drive.google.com'
+    ? parsed.pathname.match(/^\/file\/d\/([\w-]+)/)?.[1] || parsed.searchParams.get('id')
+    : null
+  if (!id || !/^[\w-]{10,}$/.test(id)) throw new Error('Use a share link for an image stored in Google Drive.')
+  return `https://drive.google.com/file/d/${id}/view`
+}
+
 function projectFields(body) {
   const title = cleanText(body.title, 140)
   const summary = cleanText(body.summary, 1200)
@@ -24,7 +44,9 @@ function projectFields(body) {
     throw new Error('Add a title, a summary of at least 20 characters, and contribution guidelines of at least 10 characters.')
   }
   if (!STATUSES.has(status)) throw new Error('Choose draft, published, or archived for the project status.')
-  return { title, summary, guidelines, tags, status }
+  const repositoryUrl = safeHttpsUrl(body.repositoryUrl, 'repository')
+  const imageDriveUrl = driveImageUrl(body.imageDriveUrl)
+  return { title, summary, guidelines, tags, repositoryUrl, imageDriveUrl, status }
 }
 
 export default async function handler(req, res) {
@@ -66,7 +88,7 @@ export default async function handler(req, res) {
     await recordAudit({ actor: actor.username, role: actor.role, action: 'build_in_public.project.deleted', contentType: 'buildInPublicProject', documentId: id })
     return json(res, 200, { project: removed, projects })
   } catch (error) {
-    if (error.message.startsWith('Add a title') || error.message.startsWith('Choose draft')) {
+    if (error.message.startsWith('Add a title') || error.message.startsWith('Choose draft') || error.message.startsWith('Enter a valid HTTPS') || error.message.startsWith('Use a share link')) {
       return json(res, 400, { error: error.message })
     }
     return json(res, 503, { error: 'Build in Public projects are temporarily unavailable.' })

@@ -2542,6 +2542,22 @@ body.custom-cursor-active * {
   cursor: none !important;
 }
 
+body.custom-cursor-active.contribution-modal-open,
+body.custom-cursor-active.contribution-modal-open * {
+  cursor: auto !important;
+}
+
+body.custom-cursor-active.contribution-modal-open button,
+body.custom-cursor-active.contribution-modal-open a,
+body.custom-cursor-active.contribution-modal-open [role='button'] {
+  cursor: pointer !important;
+}
+
+body.custom-cursor-active.contribution-modal-open input,
+body.custom-cursor-active.contribution-modal-open textarea {
+  cursor: text !important;
+}
+
 /* ─── ARTICLE PORTABLE TEXT TYPOGRAPHY (overrides) ─── */
 .article-h1 {
   font-family: 'Inter', sans-serif;

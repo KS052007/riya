@@ -37,6 +37,17 @@ async function postJson(path, body) {
   return result
 }
 
+function driveImageSource(shareUrl) {
+  if (!shareUrl) return ''
+  try {
+    const url = new URL(shareUrl)
+    const fileId = url.pathname.match(/^\/file\/d\/([\w-]+)/)?.[1] || url.searchParams.get('id')
+    return url.hostname === 'drive.google.com' && fileId ? `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}` : ''
+  } catch {
+    return ''
+  }
+}
+
 export default function BuildInPublic() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [projects, setProjects] = useState([])
@@ -44,6 +55,7 @@ export default function BuildInPublic() {
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [projectsError, setProjectsError] = useState('')
   const fileInputRef = useRef(null)
+  const joinButtonRef = useRef(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [file, setFile] = useState(null)
   const [dragActive, setDragActive] = useState(false)
@@ -65,12 +77,14 @@ export default function BuildInPublic() {
 
   useEffect(() => {
     if (!isFormOpen) return undefined
-    const onKeyDown = event => { if (event.key === 'Escape' && !formState.busy) setIsFormOpen(false) }
+    const onKeyDown = event => { if (event.key === 'Escape' && !formState.busy) closeForm() }
     document.addEventListener('keydown', onKeyDown)
     document.body.classList.add('build-modal-open')
+    document.body.classList.add('contribution-modal-open')
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.classList.remove('build-modal-open')
+      document.body.classList.remove('contribution-modal-open')
     }
   }, [isFormOpen, formState.busy])
 
@@ -78,10 +92,12 @@ export default function BuildInPublic() {
     if (formState.busy) return
     setIsFormOpen(false)
     setFormState({ busy: false, error: '', success: false })
+    window.requestAnimationFrame(() => joinButtonRef.current?.focus())
   }
 
-  function openForm(project) {
+  function openForm(project, trigger) {
     setSelectedProject(project)
+    joinButtonRef.current = trigger
     setIsFormOpen(true)
     setFormState({ busy: false, error: '', success: false })
   }
@@ -158,10 +174,10 @@ export default function BuildInPublic() {
           <div className="build-projects-heading"><div><p className="build-public-eyebrow">Build with the community</p><h2 id="build-public-project-title">Open projects</h2></div><span>Ideas published by Binary Minds admins</span></div>
           {projectsLoading ? <p className="build-feed-empty">Loading open projects…</p> : projectsError ? <p className="build-feed-error" role="alert">{projectsError}</p> : projects.length ? <div className="build-open-project-grid">
             {projects.map((project, index) => <article className="build-public-project-card" key={project.id}>
-              <div className="build-project-visual" aria-hidden="true"><div className="agent-node agent-node-main">{String(index + 1).padStart(2, '0')}</div><div className="agent-node agent-node-one">IDEA</div><div className="agent-node agent-node-two">BUILD</div><div className="agent-node agent-node-three">SHARE</div><span className="agent-line agent-line-one" /><span className="agent-line agent-line-two" /><span className="agent-line agent-line-three" /></div>
+              <div className={`build-project-visual ${project.imageDriveUrl ? 'has-project-image' : ''}`} aria-hidden="true">{driveImageSource(project.imageDriveUrl) ? <img className="build-project-cover" src={driveImageSource(project.imageDriveUrl)} alt="" loading="lazy" /> : <><div className="agent-node agent-node-main">{String(index + 1).padStart(2, '0')}</div><div className="agent-node agent-node-one">IDEA</div><div className="agent-node agent-node-two">BUILD</div><div className="agent-node agent-node-three">SHARE</div><span className="agent-line agent-line-one" /><span className="agent-line agent-line-two" /><span className="agent-line agent-line-three" /></>}</div>
               <div className="build-project-info"><div className="build-project-label"><span>Seeking contributors</span><span>Open project</span></div><h3>{project.title}</h3><p>{project.summary}</p>
                 {project.tags?.length > 0 && <div className="build-project-tags">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}
-                <div className="build-project-footer"><p>{project.guidelines}</p><button type="button" className="build-join-button" onClick={() => openForm(project)}>Join Now</button></div>
+                <div className="build-project-footer"><p>{project.guidelines}</p><div className="build-project-actions">{project.repositoryUrl && <a className="build-repository-link" href={project.repositoryUrl} target="_blank" rel="noreferrer">View repository</a>}<button type="button" className="build-join-button" onClick={event => openForm(project, event.currentTarget)}>Join Now</button></div></div>
               </div>
             </article>)}
           </div> : <div className="build-feed-empty">No projects are open for contributions right now. Check back soon.</div>}
@@ -180,7 +196,7 @@ export default function BuildInPublic() {
           {formState.success ? <div className="contribution-success"><div className="contribution-success-mark">✓</div><h3>Request received</h3><p>Your contribution request is now in the review queue. A Binary Minds admin will contact you at the student email you provided.</p><button className="build-join-button" onClick={closeForm}>Done</button></div> : <form className="contribution-form" onSubmit={submitApplication}>
             <div className="contribution-guideline-callout"><strong>Contribution Guidelines:</strong><p>{selectedProject?.guidelines}</p></div>
             <div className="contribution-fields-grid">
-              <label>Full Name <b>*</b><input name="fullName" value={form.fullName} onChange={updateField} autoComplete="name" maxLength={100} required /></label>
+              <label>Full Name <b>*</b><input name="fullName" value={form.fullName} onChange={updateField} autoComplete="name" maxLength={100} autoFocus required /></label>
               <label>Student Email <b>*</b><input name="studentEmail" type="email" value={form.studentEmail} onChange={updateField} autoComplete="email" placeholder="student@iitmbs.ac.in" maxLength={160} required /></label>
               <label>GitHub ID / Profile <b>*</b><input name="githubProfile" type="url" value={form.githubProfile} onChange={updateField} placeholder="https://github.com/username" maxLength={300} required /></label>
               <label>LinkedIn ID / Profile <b>*</b><input name="linkedinProfile" type="url" value={form.linkedinProfile} onChange={updateField} placeholder="https://linkedin.com/in/username" maxLength={300} required /></label>
