@@ -3,9 +3,26 @@ import { getBuildInPublicProjects } from '../../server/build-in-public-projects.
 import { checkPublicSubmissionLimit, json, readStoredJson, requireMethod, requireSameOrigin, setSecurityHeaders, writeStoredJson } from '../../server/security.js'
 
 const KEY = 'bm-bip:submissions:v1'
-const PROFILE_LINKS = {
-  github: value => /^https:\/\/(www\.)?github\.com\/[A-Za-z0-9-]+\/?$/i.test(value),
-  linkedin: value => /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9-_%]+\/?$/i.test(value),
+function normalizeProfile(value, platform) {
+  const input = String(value || '').trim()
+  const patterns = {
+    github: {
+      url: /^(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9-]+)\/?$/i,
+      username: /^@?([A-Za-z0-9-]{1,39})$/,
+      host: 'github.com',
+    },
+    linkedin: {
+      url: /^(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([A-Za-z0-9_-]+)\/?$/i,
+      username: /^@?([A-Za-z0-9_-]{1,100})$/,
+      host: 'linkedin.com/in',
+    },
+  }
+  const rule = patterns[platform]
+  const match = input.match(rule.url) || input.match(rule.username)
+  if (!match) return null
+  const username = match[1]
+  if (platform === 'github' && (username.startsWith('-') || username.endsWith('-') || username.includes('--'))) return null
+  return `https://${rule.host}/${username}`
 }
 
 function bodyOf(req) {
@@ -31,8 +48,8 @@ export default async function handler(req, res) {
 
     const fullName = text(body.fullName, 100)
     const studentEmail = text(body.studentEmail, 160).toLowerCase()
-    const githubProfile = text(body.githubProfile, 300)
-    const linkedinProfile = text(body.linkedinProfile, 300)
+    const githubProfile = normalizeProfile(text(body.githubProfile, 300), 'github')
+    const linkedinProfile = normalizeProfile(text(body.linkedinProfile, 300), 'linkedin')
     const motivation = text(body.motivation, 2000)
     const contributionIdea = text(body.contributionIdea, 2000)
     const projectId = text(body.projectId, 64)
@@ -41,9 +58,8 @@ export default async function handler(req, res) {
     if (fullName.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentEmail)) {
       return json(res, 400, { error: 'Enter your full name and a valid student email.' })
     }
-    if (!PROFILE_LINKS.github(githubProfile) || !PROFILE_LINKS.linkedin(linkedinProfile)) {
-      return json(res, 400, { error: 'Enter a valid GitHub profile and LinkedIn profile URL.' })
-    }
+    if (!githubProfile) return json(res, 400, { error: 'Enter your GitHub username or a github.com profile link.' })
+    if (!linkedinProfile) return json(res, 400, { error: 'Enter your LinkedIn ID or a linkedin.com/in profile link.' })
     if (motivation.length < 20 || contributionIdea.length < 20) {
       return json(res, 400, { error: 'Please provide at least 20 characters for both written responses.' })
     }
