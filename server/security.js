@@ -139,10 +139,11 @@ export async function enforceLoginLimit(req, res, username) {
     const response = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify([{ command: 'EVAL', args: [script, '1', key] }]),
+      body: JSON.stringify([['EVAL', script, '1', key]]),
     })
     if (!response.ok) throw new Error('Rate-limit store unavailable')
     const result = await response.json()
+    if (result?.[0]?.error) throw new Error('Rate-limit command rejected')
     if (Number(result?.[0]?.result) > 8) {
       json(res, 429, { error: 'Too many login attempts. Try again in 15 minutes.' })
       return false
@@ -161,9 +162,9 @@ export async function recordAudit(entry) {
   const key = 'bm-admin:audit:v1'
   const value = JSON.stringify({ ...entry, at: new Date().toISOString() })
   const commands = [
-    { command: 'LPUSH', args: [key, value] },
-    { command: 'LTRIM', args: [key, '0', '9999'] },
-    { command: 'EXPIRE', args: [key, '31536000'] },
+    ['LPUSH', key, value],
+    ['LTRIM', key, '0', '9999'],
+    ['EXPIRE', key, '31536000'],
   ]
   const response = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
     method: 'POST',
