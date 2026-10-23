@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 const SITE = {
   name: import.meta.env.VITE_SITE_NAME || 'Binary Minds',
   house: import.meta.env.VITE_SITE_HOUSE || 'Kaziranga House',
+  logoPath: import.meta.env.VITE_BRAND_LOGO || '/binary-minds-logo.jpg',
 }
 
 const SOCIALS = JSON.parse(
@@ -44,7 +45,7 @@ export default function Footer() {
         {/* Brand Section */}
         <div className="footer-brand-section">
           <Link to="/" className="footer-logo cursor-target">
-            <div className="footer-logo-icon">BM</div>
+            <img className="footer-logo-icon" src={SITE.logoPath} alt="Binary Minds logo" />
             <div className="footer-logo-text">
               <h2>{SITE.name}</h2>
               <span>{SITE.house}</span>
@@ -61,7 +62,7 @@ export default function Footer() {
           <nav className="footer-nav">
             <Link to="/" className="footer-link cursor-target">Home</Link>
             <Link to="/minds" className="footer-link cursor-target">Our Minds</Link>
-            <Link to="/blitz" className="footer-link cursor-target">Blitz</Link>
+            <Link to="/build-in-public" className="footer-link cursor-target">Build in Public</Link>
             <Link to="/events" className="footer-link cursor-target">Events</Link>
           </nav>
         </div>

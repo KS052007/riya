@@ -74,7 +74,8 @@
 .build-orbit-ring { position: absolute; width: 200px; height: 200px; border: 1px solid rgba(169,245,208,.2); border-radius: 50%; }
 .build-orbit-ring-one { width: 205px; height: 205px; }
 .build-orbit-ring-two { width: 285px; height: 285px; border-color: rgba(169,245,208,.11); }
-.build-orbit-core { display: grid; place-items: center; width: 92px; height: 92px; border: 1px solid rgba(169,245,208,.54); border-radius: 28px; background: linear-gradient(145deg, rgba(169,245,208,.2), rgba(169,245,208,.04)); color: var(--build-mint); font-size: 1.2rem; font-weight: 600; letter-spacing: .12em; box-shadow: 0 0 60px rgba(91,204,150,.14); }
+.build-orbit-core { display: grid; place-items: center; width: 116px; height: 116px; overflow: hidden; border: 1px solid rgba(169,245,208,.54); border-radius: 50%; background: #eef5ff; box-shadow: 0 0 60px rgba(91,204,150,.14); }
+.build-orbit-core img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .build-orbit-point { position: absolute; width: 9px; height: 9px; border: 2px solid #0b1510; border-radius: 50%; background: var(--build-mint); box-shadow: 0 0 15px rgba(169,245,208,.9); }
 .build-orbit-point-one { top: 65px; left: calc(50% + 82px); }
 .build-orbit-point-two { bottom: 71px; left: calc(50% - 137px); width: 7px; height: 7px; opacity: .65; }

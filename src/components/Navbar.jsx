@@ -4,8 +4,10 @@ import { useState } from 'react'
 
 const SITE = {
   name: import.meta.env.VITE_SITE_NAME || 'Binary Minds',
-  logoPath: import.meta.env.VITE_SITE_LOGO || '/logo.png',
+  logoPath: import.meta.env.VITE_BRAND_LOGO || '/binary-minds-logo.jpg',
 }
+
+const KAZIRANGA_LOGO = '/logo.png'
 
 export default function Navbar() {
   const location = useLocation()
@@ -31,18 +33,19 @@ export default function Navbar() {
           <a href="https://kaziranga.iitmbs.org/" target="_blank" rel="noopener noreferrer" className="cursor-target" style={{ display: 'flex', alignItems: 'center' }}>
             {!imgError ? (
               <img
-                src={SITE.logoPath}
-                alt={`${SITE.name} logo`}
+                src={KAZIRANGA_LOGO}
+                alt="Kaziranga House logo"
                 className="nav-logo-img"
                 onError={() => setImgError(true)}
                 style={{ borderRadius: '0', border: 'none', background: 'transparent', objectFit: 'contain', boxShadow: 'none' }}
               />
             ) : (
-              <div className="nav-logo-icon">BM</div>
+              <span className="nav-logo-fallback" aria-hidden="true">K</span>
             )}
           </a>
           <div className="nav-divider" style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.2)', margin: '0 0.25rem' }} />
           <Link to="/" className="cursor-target" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <img src={SITE.logoPath} alt="" className="nav-brand-mark" />
             <span className="nav-logo-text">{SITE.name}</span>
           </Link>
         </div>

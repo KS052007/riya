@@ -41,11 +41,11 @@ export default function BuildInPublic() {
             transition={{ duration: 0.7, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
             aria-label="What is coming to Build in Public"
           >
-            <div className="build-preview-top"><span>FIELD NOTES</span><span>BM / 001</span></div>
+            <div className="build-preview-top"><span>FIELD NOTES</span><span>FIELD NOTE / 001</span></div>
             <div className="build-preview-orbit" aria-hidden="true">
               <div className="build-orbit-ring build-orbit-ring-one" />
               <div className="build-orbit-ring build-orbit-ring-two" />
-              <div className="build-orbit-core">BM</div>
+              <div className="build-orbit-core"><img src="/binary-minds-logo.jpg" alt="Binary Minds logo" /></div>
               <i className="build-orbit-point build-orbit-point-one" />
               <i className="build-orbit-point build-orbit-point-two" />
             </div>

@@ -16,7 +16,7 @@ This documents the configuration currently consumed by the app and serverless fu
 |---|---|---|
 | `VITE_SITE_NAME` | Site label | Public |
 | `VITE_SITE_HOUSE` | Footer label | Public |
-| `VITE_SITE_LOGO` | Logo path | Public |
+| `VITE_BRAND_LOGO` | Binary Minds brand logo path (Kaziranga House logo remains separately shown in the navbar) | Public |
 | `VITE_SOCIALS` | Public social link JSON | Public |
 | `VITE_IDEATHON_SUBMISSION_API_URL` | Public submission endpoint URL | Public URL, not a secret |
 | `VITE_SANITY_PROJECT_ID` | Sanity browser read client project ID | Public |
@@ -48,6 +48,8 @@ Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluat
 6. Save all values in `.env.local` or the deployment secret manager. Never commit them.
 
 The login API fails closed if the session secret, user record, or rate-limit service is missing. Content reads/writes fail when the Sanity write token is missing.
+
+If the deployed admin page shows “Admin sign-in is not configured,” add `SESSION_SECRET`, `ADMIN_USERS_JSON`, `UPSTASH_REDIS_REST_URL`, and `UPSTASH_REDIS_REST_TOKEN` to the Vercel project's server-side environment settings for the deployment environment, then redeploy. The account hash from a local `.env.local` file is not uploaded by Git and does not configure the deployed site.
 
 ## External setup requiring an account owner
 

@@ -196,7 +196,7 @@ export default function AdminPortal() {
     return (
       <main className="admin-login-page">
         <section className="admin-login-card" aria-labelledby="admin-login-title">
-          <a className="admin-brand" href="/">BM <span>Binary Minds</span></a>
+          <a className="admin-brand" href="/"><img src="/binary-minds-logo.jpg" alt="" /><span>Binary Minds</span></a>
           <p className="admin-eyebrow">Organizer access</p>
           <h1 id="admin-login-title">Sign in to your workspace</h1>
           <p className="admin-muted">Use an account configured by the site administrator.</p>
@@ -215,7 +215,7 @@ export default function AdminPortal() {
   return (
     <main className="admin-shell">
       <aside className="admin-sidebar">
-        <a className="admin-brand" href="/">BM <span>Binary Minds</span></a>
+        <a className="admin-brand" href="/"><img src="/binary-minds-logo.jpg" alt="" /><span>Binary Minds</span></a>
         <p className="admin-eyebrow">Administration</p>
         <nav aria-label="Content collections" className="admin-nav">
           {COLLECTIONS.map(collection => (

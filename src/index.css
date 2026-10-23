@@ -212,15 +212,9 @@ body {
 .footer-logo-icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
-  font-weight: 800;
-  color: #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
   box-shadow: 0 0 20px var(--cyan-glow);
 }
 
@@ -444,19 +438,23 @@ ul, ol {
   border: 2px solid var(--cyan-dim);
 }
 
-.nav-logo-icon {
+.nav-logo-fallback {
+  display: grid;
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
+  place-items: center;
+  border-radius: 50%;
+  background: #064e3b;
   color: #fff;
-  box-shadow: 0 0 16px var(--cyan-glow);
+  font-weight: 700;
+}
+
+.nav-brand-mark {
+  width: 36px;
+  height: 36px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .nav-logo-text {
