@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import './BuildInPublic.css'
 
-const PROJECT_NAME = 'Binary Minds Open AI Agent Framework'
 const CHUNK_BYTES = 512 * 1024
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 const ALLOWED_FILES = new Set(['pdf', 'doc', 'docx'])
@@ -40,11 +39,29 @@ async function postJson(path, body) {
 
 export default function BuildInPublic() {
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [projects, setProjects] = useState([])
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [projectsError, setProjectsError] = useState('')
   const fileInputRef = useRef(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [file, setFile] = useState(null)
   const [dragActive, setDragActive] = useState(false)
   const [formState, setFormState] = useState({ busy: false, error: '', success: false })
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/public/build-in-public')
+      .then(async response => {
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(result.error || 'Projects are temporarily unavailable.')
+        return result
+      })
+      .then(result => { if (active) setProjects(result.projects || []) })
+      .catch(error => { if (active) setProjectsError(error.message) })
+      .finally(() => { if (active) setProjectsLoading(false) })
+    return () => { active = false }
+  }, [])
 
   useEffect(() => {
     if (!isFormOpen) return undefined
@@ -60,6 +77,12 @@ export default function BuildInPublic() {
   function closeForm() {
     if (formState.busy) return
     setIsFormOpen(false)
+    setFormState({ busy: false, error: '', success: false })
+  }
+
+  function openForm(project) {
+    setSelectedProject(project)
+    setIsFormOpen(true)
     setFormState({ busy: false, error: '', success: false })
   }
 
@@ -88,7 +111,7 @@ export default function BuildInPublic() {
           await postJson('/api/public/build-in-public-attachment', { action: 'chunk', uploadId, index, data: chunk })
         }
       }
-      await postJson('/api/public/build-in-public', { ...form, uploadId })
+      await postJson('/api/public/build-in-public', { ...form, projectId: selectedProject.id, uploadId })
       setFormState({ busy: false, error: '', success: true })
       setForm(EMPTY_FORM)
       setFile(null)
@@ -112,7 +135,7 @@ export default function BuildInPublic() {
             <h1>Build in <span>Public.</span></h1>
             <p className="build-public-intro">Follow the ideas taking shape inside Binary Minds, meet the people behind them, and find a project you can help move forward.</p>
             <div className="build-public-actions">
-              <button type="button" className="build-public-primary" onClick={() => { setIsFormOpen(true); setFormState({ busy: false, error: '', success: false }) }}>Explore open projects</button>
+              <a className="build-public-primary" href="#open-projects">Explore open projects</a>
               <a href="#contribution-guidelines" className="build-public-secondary">How to contribute <span aria-hidden="true">↓</span></a>
             </div>
           </motion.div>
@@ -131,34 +154,31 @@ export default function BuildInPublic() {
           </motion.aside>
         </section>
 
-        <section className="build-public-projects" aria-labelledby="build-public-project-title">
-          <div className="build-project-visual" aria-hidden="true"><div className="agent-node agent-node-main">BM</div><div className="agent-node agent-node-one">LLM</div><div className="agent-node agent-node-two">TOOLS</div><div className="agent-node agent-node-three">UI</div><span className="agent-line agent-line-one" /><span className="agent-line agent-line-two" /><span className="agent-line agent-line-three" /></div>
-          <div className="build-project-info">
-            <div className="build-project-label"><span>Seeking contributors</span><span>Open source</span></div>
-            <h2 id="build-public-project-title">{PROJECT_NAME}</h2>
-            <p>An open-source framework for building and inspecting multi-agent AI workflows, with a visual debugger for understanding how agents reason and collaborate.</p>
-            <div className="build-project-tags"><span>AI / ML</span><span>Python</span><span>LLMs</span><span>React</span><span>Agent tooling</span></div>
-            <div className="build-project-footer"><p>Looking for Python developers with LLM and prompt engineering experience, plus React contributors for visual agent debuggers.</p><button className="build-join-button" onClick={() => { setIsFormOpen(true); setFormState({ busy: false, error: '', success: false }) }}>Join Now</button></div>
-          </div>
+        <section id="open-projects" className="build-open-projects" aria-labelledby="build-public-project-title">
+          <div className="build-projects-heading"><div><p className="build-public-eyebrow">Build with the community</p><h2 id="build-public-project-title">Open projects</h2></div><span>Ideas published by Binary Minds admins</span></div>
+          {projectsLoading ? <p className="build-feed-empty">Loading open projects…</p> : projectsError ? <p className="build-feed-error" role="alert">{projectsError}</p> : projects.length ? <div className="build-open-project-grid">
+            {projects.map((project, index) => <article className="build-public-project-card" key={project.id}>
+              <div className="build-project-visual" aria-hidden="true"><div className="agent-node agent-node-main">{String(index + 1).padStart(2, '0')}</div><div className="agent-node agent-node-one">IDEA</div><div className="agent-node agent-node-two">BUILD</div><div className="agent-node agent-node-three">SHARE</div><span className="agent-line agent-line-one" /><span className="agent-line agent-line-two" /><span className="agent-line agent-line-three" /></div>
+              <div className="build-project-info"><div className="build-project-label"><span>Seeking contributors</span><span>Open project</span></div><h3>{project.title}</h3><p>{project.summary}</p>
+                {project.tags?.length > 0 && <div className="build-project-tags">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}
+                <div className="build-project-footer"><p>{project.guidelines}</p><button type="button" className="build-join-button" onClick={() => openForm(project)}>Join Now</button></div>
+              </div>
+            </article>)}
+          </div> : <div className="build-feed-empty">No projects are open for contributions right now. Check back soon.</div>}
         </section>
 
         <section id="contribution-guidelines" className="build-public-guidelines">
           <p className="build-public-eyebrow">Contribution guidelines</p>
           <h2>Bring your skills. Shape the direction.</h2>
-          <div className="build-guideline-grid">
-            <article><span>01</span><h3>Python and LLMs</h3><p>Help build agent workflows, integrations, and reliable evaluation tools.</p></article>
-            <article><span>02</span><h3>Prompt engineering</h3><p>Design prompts and patterns that make multi-agent behavior clearer and more useful.</p></article>
-            <article><span>03</span><h3>React visual debugger</h3><p>Build interfaces that help people see what agents are doing and why.</p></article>
-          </div>
-          <button className="build-guidelines-join" onClick={() => { setIsFormOpen(true); setFormState({ busy: false, error: '', success: false }) }}>Send a contribution request</button>
+          <p className="build-guidelines-description">Each project has its own contribution guidelines. Choose an open project above to read its details and send a request.</p>
         </section>
       </main>
 
       {isFormOpen && <div className="contribution-overlay" onMouseDown={event => { if (event.target === event.currentTarget) closeForm() }}>
         <section className="contribution-modal" role="dialog" aria-modal="true" aria-labelledby="contribution-title">
-          <header className="contribution-modal-header"><div><span>Contribution Request</span><h2 id="contribution-title">{PROJECT_NAME}</h2></div><button type="button" className="contribution-close" onClick={closeForm} aria-label="Close contribution form">×</button></header>
+          <header className="contribution-modal-header"><div><span>Contribution Request</span><h2 id="contribution-title">{selectedProject?.title}</h2></div><button type="button" className="contribution-close" onClick={closeForm} aria-label="Close contribution form">×</button></header>
           {formState.success ? <div className="contribution-success"><div className="contribution-success-mark">✓</div><h3>Request received</h3><p>Your contribution request is now in the review queue. A Binary Minds admin will contact you at the student email you provided.</p><button className="build-join-button" onClick={closeForm}>Done</button></div> : <form className="contribution-form" onSubmit={submitApplication}>
-            <div className="contribution-guideline-callout"><strong>Contribution Guidelines:</strong><p>Looking for Python developers with experience in LLMs, prompt engineering, and React frontend contributors for visual agent debuggers.</p></div>
+            <div className="contribution-guideline-callout"><strong>Contribution Guidelines:</strong><p>{selectedProject?.guidelines}</p></div>
             <div className="contribution-fields-grid">
               <label>Full Name <b>*</b><input name="fullName" value={form.fullName} onChange={updateField} autoComplete="name" maxLength={100} required /></label>
               <label>Student Email <b>*</b><input name="studentEmail" type="email" value={form.studentEmail} onChange={updateField} autoComplete="email" placeholder="student@iitmbs.ac.in" maxLength={160} required /></label>

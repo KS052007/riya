@@ -8,6 +8,8 @@ const COLLECTIONS = [
   { type: 'siteAnnouncement', label: 'Announcements' },
 ]
 
+const EMPTY_PROJECT = { title: '', summary: '', guidelines: '', tags: '', status: 'draft' }
+
 function canEditCollection(role, type) {
   if (role === 'super_admin') return true
   if (role === 'event_organizer') return ['siteEvent', 'siteResult', 'siteAnnouncement'].includes(type)
@@ -46,6 +48,10 @@ export default function AdminPortal() {
   const [selectedType, setSelectedType] = useState('build-in-public')
   const [documents, setDocuments] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [projects, setProjects] = useState([])
+  const [bipSection, setBipSection] = useState('projects')
+  const [projectDraft, setProjectDraft] = useState(EMPTY_PROJECT)
+  const [editingProjectId, setEditingProjectId] = useState(null)
   const [adminUsers, setAdminUsers] = useState([])
   const [auditEntries, setAuditEntries] = useState([])
   const [selectedId, setSelectedId] = useState(null)
@@ -88,9 +94,13 @@ export default function AdminPortal() {
     }
     if (selectedType === 'build-in-public') {
       setBusy(true)
-      request('/api/admin/build-in-public')
-        .then(result => { setSubmissions(result.submissions || []); setError('') })
-        .catch(reason => { setSubmissions([]); setError(reason.message) })
+      Promise.all([request('/api/admin/build-in-public'), request('/api/admin/build-in-public-projects')])
+        .then(([applicationResult, projectResult]) => {
+          setSubmissions(applicationResult.submissions || [])
+          setProjects(projectResult.projects || [])
+          setError('')
+        })
+        .catch(reason => { setSubmissions([]); setProjects([]); setError(reason.message) })
         .finally(() => setBusy(false))
       return
     }
@@ -149,6 +159,46 @@ export default function AdminPortal() {
     setError('')
     try { setSubmissions((await request('/api/admin/build-in-public')).submissions || []) }
     catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
+  function beginProjectEdit(project = null) {
+    setEditingProjectId(project?.id || null)
+    setProjectDraft(project ? { ...project, tags: (project.tags || []).join(', ') } : { ...EMPTY_PROJECT })
+    setError('')
+    setNotice('')
+  }
+
+  async function saveProject(event) {
+    event.preventDefault()
+    setBusy(true)
+    setError('')
+    setNotice('')
+    const payload = { ...projectDraft, tags: projectDraft.tags.split(',').map(tag => tag.trim()).filter(Boolean) }
+    try {
+      await request('/api/admin/build-in-public-projects', {
+        method: editingProjectId ? 'PUT' : 'POST',
+        body: JSON.stringify(editingProjectId ? { ...payload, id: editingProjectId } : payload),
+      })
+      setProjects((await request('/api/admin/build-in-public-projects')).projects || [])
+      setProjectDraft({ ...EMPTY_PROJECT })
+      setEditingProjectId(null)
+      setNotice(editingProjectId ? 'Project changes saved.' : 'Project created.')
+    } catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
+  async function deleteProject(project) {
+    if (!window.confirm(`Delete “${project.title}”? Existing contribution requests will keep their project name.`)) return
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      await request('/api/admin/build-in-public-projects', { method: 'DELETE', body: JSON.stringify({ id: project.id }) })
+      setProjects((await request('/api/admin/build-in-public-projects')).projects || [])
+      if (editingProjectId === project.id) beginProjectEdit()
+      setNotice('Project deleted.')
+    } catch (reason) { setError(reason.message) }
     finally { setBusy(false) }
   }
 
@@ -326,8 +376,8 @@ export default function AdminPortal() {
 
       <section className="admin-main">
         <header className="admin-page-header">
-          <div><p className="admin-eyebrow">{selectedType === 'accounts' || selectedType === 'build-in-public' ? 'Super Admin only' : 'Content governance'}</p><h1>{selectedType === 'audit' ? 'Audit history' : selectedType === 'accounts' ? 'Access management' : selectedType === 'build-in-public' ? 'Contribution requests' : COLLECTIONS.find(item => item.type === selectedType)?.label}</h1></div>
-          {selectedType === 'build-in-public' && <button className="admin-secondary" onClick={refreshSubmissions} disabled={busy}>Refresh applications</button>}
+          <div><p className="admin-eyebrow">{selectedType === 'accounts' || selectedType === 'build-in-public' ? 'Super Admin only' : 'Content governance'}</p><h1>{selectedType === 'audit' ? 'Audit history' : selectedType === 'accounts' ? 'Access management' : selectedType === 'build-in-public' ? 'Build in Public' : COLLECTIONS.find(item => item.type === selectedType)?.label}</h1></div>
+          {selectedType === 'build-in-public' && <button className="admin-secondary" onClick={bipSection === 'projects' ? () => request('/api/admin/build-in-public-projects').then(result => setProjects(result.projects || [])).catch(reason => setError(reason.message)) : refreshSubmissions} disabled={busy}>Refresh {bipSection}</button>}
           {selectedType !== 'audit' && selectedType !== 'accounts' && selectedType !== 'build-in-public' && canEditCollection(user.role, selectedType) && <button className="admin-primary" onClick={startNew}>＋ New document</button>}
         </header>
 
@@ -360,8 +410,30 @@ export default function AdminPortal() {
           </div>
         ) : selectedType === 'build-in-public' ? (
           <>
-            <div className="admin-callout"><strong>Contribution requests are private until reviewed.</strong><span>Accept or reject applications for the Binary Minds Open AI Agent Framework. Applicant details and attachments are visible only to Super Admins; attachments are retained for 90 days.</span></div>
-            <section className="admin-submissions">
+            <div className="admin-callout"><strong>Manage public projects and review private requests.</strong><span>Published projects and their guidelines appear on the public Build in Public page. Draft and archived projects stay hidden. Applicant details and attachments are visible only to Super Admins.</span></div>
+            <nav className="admin-bip-tabs" aria-label="Build in Public sections">
+              <button type="button" className={bipSection === 'projects' ? 'active' : ''} onClick={() => { setBipSection('projects'); setError(''); setNotice('') }}>Projects</button>
+              <button type="button" className={bipSection === 'applications' ? 'active' : ''} onClick={() => { setBipSection('applications'); setError(''); setNotice('') }}>Contribution requests <span>{submissions.length}</span></button>
+            </nav>
+            {bipSection === 'projects' ? <div className="admin-bip-project-layout">
+              <section className="admin-document-list">
+                <div className="admin-list-heading"><h2>Public projects</h2><button type="button" onClick={() => beginProjectEdit()}>＋ New project</button></div>
+                {busy && projects.length === 0 ? <p className="admin-muted">Loading projects…</p> : projects.length ? projects.map(project => <article className="admin-bip-project-row" key={project.id}>
+                  <div><span className={`admin-status admin-status-${project.status === 'published' ? 'accepted' : 'pending'}`}>{project.status}</span><h3>{project.title}</h3><p>{project.summary}</p><small>{project.tags?.join(' · ') || 'No tags'}</small></div>
+                  <div className="admin-bip-project-actions"><button type="button" className="admin-secondary" onClick={() => beginProjectEdit(project)}>Edit</button><button type="button" className="admin-danger-link" onClick={() => deleteProject(project)} disabled={busy}>Delete</button></div>
+                </article>) : <p className="admin-muted">No projects yet. Add one to publish an opportunity.</p>}
+              </section>
+              <form className="admin-editor admin-bip-project-form" onSubmit={saveProject}>
+                <h2>{editingProjectId ? 'Edit project' : 'Create a project'}</h2>
+                <p className="admin-muted">Published projects appear on the public page. Contribution guidelines are shown with the project and in its request form.</p>
+                <label>Project name<input value={projectDraft.title} maxLength={140} onChange={event => setProjectDraft({ ...projectDraft, title: event.target.value })} required /></label>
+                <label>Project summary<textarea value={projectDraft.summary} maxLength={1200} rows={4} onChange={event => setProjectDraft({ ...projectDraft, summary: event.target.value })} required /></label>
+                <label>Contribution guidelines<textarea value={projectDraft.guidelines} maxLength={1200} rows={4} onChange={event => setProjectDraft({ ...projectDraft, guidelines: event.target.value })} required /></label>
+                <label>Tags <span className="admin-muted">Separate tags with commas.</span><input value={projectDraft.tags} onChange={event => setProjectDraft({ ...projectDraft, tags: event.target.value })} placeholder="Python, React, AI / ML" /></label>
+                <label>Visibility<select value={projectDraft.status} onChange={event => setProjectDraft({ ...projectDraft, status: event.target.value })}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
+                <div className="admin-editor-actions"><button type="button" className="admin-secondary" onClick={() => beginProjectEdit()}>Clear</button><button className="admin-primary" disabled={busy}>{busy ? 'Saving…' : editingProjectId ? 'Save project' : 'Create project'}</button></div>
+              </form>
+            </div> : <section className="admin-submissions">
               {busy && submissions.length === 0 ? <p className="admin-muted">Loading applications…</p> : submissions.length ? submissions.map(submission => (
                 <article className="admin-submission" key={submission.id}>
                   <div className="admin-submission-content">
@@ -376,8 +448,8 @@ export default function AdminPortal() {
                     {submission.status !== 'rejected' && <button className="admin-danger-link" disabled={busy} onClick={() => reviewSubmission(submission.id, 'rejected')}>Reject</button>}
                   </div>
                 </article>
-              )) : <div className="admin-empty-state"><h2>No contribution requests yet</h2><p>Applications to the Open AI Agent Framework will appear here for Super Admin review.</p></div>}
-            </section>
+              )) : <div className="admin-empty-state"><h2>No contribution requests yet</h2><p>Requests for published Build in Public projects will appear here for Super Admin review.</p></div>}
+            </section>}
           </>
         ) : selectedType === 'audit' ? (
           <section className="admin-audit-list">

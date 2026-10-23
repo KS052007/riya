@@ -1,0 +1,74 @@
+import { createProjectId, getBuildInPublicProjects, PROJECTS_KEY } from '../../server/build-in-public-projects.js'
+import { json, recordAudit, requireSameOrigin, requireSession, setSecurityHeaders, writeStoredJson } from '../../server/security.js'
+
+const STATUSES = new Set(['draft', 'published', 'archived'])
+
+function bodyOf(req) {
+  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+  return body && typeof body === 'object' && !Array.isArray(body) ? body : {}
+}
+
+function cleanText(value, limit) {
+  return String(value || '').trim().slice(0, limit)
+}
+
+function projectFields(body) {
+  const title = cleanText(body.title, 140)
+  const summary = cleanText(body.summary, 1200)
+  const guidelines = cleanText(body.guidelines, 1200)
+  const tags = Array.isArray(body.tags)
+    ? [...new Set(body.tags.map(tag => cleanText(tag, 32)).filter(Boolean))].slice(0, 12)
+    : String(body.tags || '').split(',').map(tag => cleanText(tag, 32)).filter(Boolean).slice(0, 12)
+  const status = String(body.status || 'draft')
+  if (title.length < 3 || summary.length < 20 || guidelines.length < 10) {
+    throw new Error('Add a title, a summary of at least 20 characters, and contribution guidelines of at least 10 characters.')
+  }
+  if (!STATUSES.has(status)) throw new Error('Choose draft, published, or archived for the project status.')
+  return { title, summary, guidelines, tags, status }
+}
+
+export default async function handler(req, res) {
+  setSecurityHeaders(res)
+  const actor = await requireSession(req, res, ['super_admin'])
+  if (!actor) return
+  try {
+    if (req.method === 'GET') return json(res, 200, { projects: await getBuildInPublicProjects() })
+    if (!['POST', 'PUT', 'DELETE'].includes(req.method)) {
+      res.setHeader('Allow', 'GET, POST, PUT, DELETE')
+      return json(res, 405, { error: 'Method not allowed' })
+    }
+    if (!requireSameOrigin(req, res)) return
+
+    const projects = await getBuildInPublicProjects()
+    const body = bodyOf(req)
+    if (req.method === 'POST') {
+      const fields = projectFields(body)
+      const project = { id: createProjectId(), ...fields, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+      projects.unshift(project)
+      await writeStoredJson(PROJECTS_KEY, projects)
+      await recordAudit({ actor: actor.username, role: actor.role, action: 'build_in_public.project.created', contentType: 'buildInPublicProject', documentId: project.id })
+      return json(res, 201, { project, projects })
+    }
+
+    const id = cleanText(body.id, 64)
+    const index = projects.findIndex(project => project.id === id)
+    if (index < 0) return json(res, 404, { error: 'Project not found.' })
+    if (req.method === 'PUT') {
+      const fields = projectFields(body)
+      projects[index] = { ...projects[index], ...fields, updatedAt: new Date().toISOString() }
+      await writeStoredJson(PROJECTS_KEY, projects)
+      await recordAudit({ actor: actor.username, role: actor.role, action: 'build_in_public.project.updated', contentType: 'buildInPublicProject', documentId: id })
+      return json(res, 200, { project: projects[index], projects })
+    }
+
+    const [removed] = projects.splice(index, 1)
+    await writeStoredJson(PROJECTS_KEY, projects)
+    await recordAudit({ actor: actor.username, role: actor.role, action: 'build_in_public.project.deleted', contentType: 'buildInPublicProject', documentId: id })
+    return json(res, 200, { project: removed, projects })
+  } catch (error) {
+    if (error.message.startsWith('Add a title') || error.message.startsWith('Choose draft')) {
+      return json(res, 400, { error: error.message })
+    }
+    return json(res, 503, { error: 'Build in Public projects are temporarily unavailable.' })
+  }
+}

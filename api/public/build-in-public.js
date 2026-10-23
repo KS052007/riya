@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
+import { getBuildInPublicProjects } from '../../server/build-in-public-projects.js'
 import { checkPublicSubmissionLimit, json, readStoredJson, requireMethod, requireSameOrigin, setSecurityHeaders, writeStoredJson } from '../../server/security.js'
 
 const KEY = 'bm-bip:submissions:v1'
-const PROJECT = 'Binary Minds Open AI Agent Framework'
 const PROFILE_LINKS = {
   github: value => /^https:\/\/(www\.)?github\.com\/[A-Za-z0-9-]+\/?$/i.test(value),
   linkedin: value => /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9-_%]+\/?$/i.test(value),
@@ -19,8 +19,12 @@ function text(value, max) {
 
 export default async function handler(req, res) {
   setSecurityHeaders(res)
-  if (!requireMethod(req, res, 'POST') || !requireSameOrigin(req, res)) return
   try {
+    if (req.method === 'GET') {
+      const projects = await getBuildInPublicProjects()
+      return json(res, 200, { projects: projects.filter(project => project.status === 'published') })
+    }
+    if (!requireMethod(req, res, 'POST') || !requireSameOrigin(req, res)) return
     const body = bodyOf(req)
     if (body.website) return json(res, 200, { ok: true })
     if (!(await checkPublicSubmissionLimit(req))) return json(res, 429, { error: 'Too many applications. Please try again later.' })
@@ -31,6 +35,9 @@ export default async function handler(req, res) {
     const linkedinProfile = text(body.linkedinProfile, 300)
     const motivation = text(body.motivation, 2000)
     const contributionIdea = text(body.contributionIdea, 2000)
+    const projectId = text(body.projectId, 64)
+    const project = (await getBuildInPublicProjects()).find(item => item.id === projectId && item.status === 'published')
+    if (!project) return json(res, 400, { error: 'This project is no longer accepting contribution requests. Refresh the page and choose an open project.' })
     if (fullName.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentEmail)) {
       return json(res, 400, { error: 'Enter your full name and a valid student email.' })
     }
@@ -63,7 +70,7 @@ export default async function handler(req, res) {
     const submissions = await readStoredJson(KEY, [])
     if (!Array.isArray(submissions)) throw new Error('Application storage is invalid')
     const application = {
-      id: randomUUID(), project: PROJECT, fullName, studentEmail, githubProfile,
+      id: randomUUID(), projectId: project.id, project: project.title, fullName, studentEmail, githubProfile,
       linkedinProfile, motivation, contributionIdea, attachment,
       status: 'pending', createdAt: new Date().toISOString(),
     }
