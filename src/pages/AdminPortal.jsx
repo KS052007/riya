@@ -152,13 +152,37 @@ export default function AdminPortal() {
     finally { setBusy(false) }
   }
 
+  async function downloadAttachment(application) {
+    if (!application.attachment) return
+    setBusy(true)
+    setError('')
+    try {
+      const parts = []
+      for (let index = 0; index < application.attachment.totalChunks; index += 1) {
+        const result = await request(`/api/admin/build-in-public-attachment?id=${encodeURIComponent(application.id)}&chunk=${index}`)
+        const decoded = atob(result.data)
+        const bytes = new Uint8Array(decoded.length)
+        for (let offset = 0; offset < decoded.length; offset += 1) bytes[offset] = decoded.charCodeAt(offset)
+        parts.push(bytes)
+      }
+      const blob = new Blob(parts, { type: application.attachment.mimeType })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = application.attachment.fileName
+      link.click()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
   async function reviewSubmission(id, status) {
     setBusy(true)
     setError('')
     setNotice('')
     try {
       await request('/api/admin/build-in-public', { method: 'PATCH', body: JSON.stringify({ id, status }) })
-      setNotice(`Submission ${status}.`)
+      setNotice(`Contribution request ${status}.`)
       await refreshSubmissions()
     } catch (reason) { setError(reason.message) }
     finally { setBusy(false) }
@@ -302,8 +326,8 @@ export default function AdminPortal() {
 
       <section className="admin-main">
         <header className="admin-page-header">
-          <div><p className="admin-eyebrow">{selectedType === 'accounts' ? 'Super Admin only' : 'Content governance'}</p><h1>{selectedType === 'audit' ? 'Audit history' : selectedType === 'accounts' ? 'Access management' : selectedType === 'build-in-public' ? 'Build in Public' : COLLECTIONS.find(item => item.type === selectedType)?.label}</h1></div>
-          {selectedType === 'build-in-public' && <button className="admin-secondary" onClick={refreshSubmissions} disabled={busy}>Refresh submissions</button>}
+          <div><p className="admin-eyebrow">{selectedType === 'accounts' || selectedType === 'build-in-public' ? 'Super Admin only' : 'Content governance'}</p><h1>{selectedType === 'audit' ? 'Audit history' : selectedType === 'accounts' ? 'Access management' : selectedType === 'build-in-public' ? 'Contribution requests' : COLLECTIONS.find(item => item.type === selectedType)?.label}</h1></div>
+          {selectedType === 'build-in-public' && <button className="admin-secondary" onClick={refreshSubmissions} disabled={busy}>Refresh applications</button>}
           {selectedType !== 'audit' && selectedType !== 'accounts' && selectedType !== 'build-in-public' && canEditCollection(user.role, selectedType) && <button className="admin-primary" onClick={startNew}>＋ New document</button>}
         </header>
 
@@ -336,20 +360,23 @@ export default function AdminPortal() {
           </div>
         ) : selectedType === 'build-in-public' ? (
           <>
-            <div className="admin-callout"><strong>Submissions need your approval before going public.</strong><span>Review the project summary and source links. Only approved submissions appear on the public Build in Public page.</span></div>
+            <div className="admin-callout"><strong>Contribution requests are private until reviewed.</strong><span>Accept or reject applications for the Binary Minds Open AI Agent Framework. Applicant details and attachments are visible only to Super Admins; attachments are retained for 90 days.</span></div>
             <section className="admin-submissions">
-              {busy && submissions.length === 0 ? <p className="admin-muted">Loading submissions…</p> : submissions.length ? submissions.map(submission => (
+              {busy && submissions.length === 0 ? <p className="admin-muted">Loading applications…</p> : submissions.length ? submissions.map(submission => (
                 <article className="admin-submission" key={submission.id}>
-                  {submission.imageUrl && <img src={submission.imageUrl} alt="" loading="lazy" />}
                   <div className="admin-submission-content">
                     <div className="admin-submission-heading"><span className={`admin-status admin-status-${submission.status}`}>{submission.status}</span><time>{new Date(submission.createdAt).toLocaleDateString()}</time></div>
-                    <h2>{submission.title}</h2><p>{submission.summary}</p>
-                    <div className="admin-submission-meta"><span>By {submission.name} · <a href={`mailto:${submission.email}`}>{submission.email}</a></span><a href={submission.sourceUrl} target="_blank" rel="noreferrer">Open {submission.sourceType === 'drive' ? 'Drive' : submission.sourceType === 'github' ? 'GitHub' : 'project'} link ↗</a></div>
-                    {submission.status !== 'approved' && <button className="admin-primary" disabled={busy} onClick={() => reviewSubmission(submission.id, 'approved')}>Approve and publish</button>}
+                    <h2>{submission.fullName}</h2>
+                    <p><strong>Project:</strong> {submission.project || 'Binary Minds Open AI Agent Framework'}<br /><strong>Student email:</strong> <a href={`mailto:${submission.studentEmail}`}>{submission.studentEmail}</a></p>
+                    <div className="admin-submission-meta"><a href={submission.githubProfile} target="_blank" rel="noreferrer">GitHub profile ↗</a><a href={submission.linkedinProfile} target="_blank" rel="noreferrer">LinkedIn profile ↗</a></div>
+                    <h3>Why they want to contribute</h3><p>{submission.motivation}</p>
+                    <h3>Contribution idea</h3><p>{submission.contributionIdea}</p>
+                    {submission.attachment && <button className="admin-secondary admin-attachment-button" disabled={busy} onClick={() => downloadAttachment(submission)}>Download {submission.attachment.fileName} ({(submission.attachment.size / 1024 / 1024).toFixed(1)} MB)</button>}
+                    {submission.status !== 'accepted' && <button className="admin-primary" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Accept request</button>}
                     {submission.status !== 'rejected' && <button className="admin-danger-link" disabled={busy} onClick={() => reviewSubmission(submission.id, 'rejected')}>Reject</button>}
                   </div>
                 </article>
-              )) : <div className="admin-empty-state"><h2>No submissions yet</h2><p>New Build in Public requests will appear here for your review.</p></div>}
+              )) : <div className="admin-empty-state"><h2>No contribution requests yet</h2><p>Applications to the Open AI Agent Framework will appear here for Super Admin review.</p></div>}
             </section>
           </>
         ) : selectedType === 'audit' ? (

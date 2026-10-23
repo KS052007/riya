@@ -232,8 +232,10 @@ export async function readStoredJson(key, fallback = null) {
   try { return JSON.parse(result) } catch { throw new Error('Stored admin data is invalid') }
 }
 
-export async function writeStoredJson(key, value) {
-  await redisCommand(['SET', key, JSON.stringify(value)])
+export async function writeStoredJson(key, value, ttlSeconds) {
+  const command = ['SET', key, JSON.stringify(value)]
+  if (Number.isInteger(ttlSeconds) && ttlSeconds > 0) command.push('EX', String(ttlSeconds))
+  await redisCommand(command)
 }
 
 export async function checkPublicSubmissionLimit(req) {

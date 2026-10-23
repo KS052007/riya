@@ -9,7 +9,7 @@
 - Content operations enforce role allowlists in the server. Editors cannot delete. Publishing rights are role-limited. Same-origin checks protect mutations.
 - Login throttling uses Upstash Redis and fails closed when Redis is unavailable. The IP/username pair is limited to eight tries per 15 minutes.
 - A Super Admin can add/remove non-super-admin accounts through a server-checked endpoint. Password hashes and account records are stored in Upstash Redis; bootstrap Super Admin accounts remain in `ADMIN_USERS_JSON`. Account recovery is not implemented. A Super Admin can read recent auth/content action records stored in Upstash Redis (one-year TTL, capped history); this is an operational audit log, not a tamper-proof compliance ledger.
-- Public Build in Public submissions are stored in Upstash as pending records. Only a Super Admin can approve or reject them; only approved records are exposed publicly. Submission rate limiting uses hashed client addresses. Source and image URLs are links to external services and are not copied into this app.
+- Build in Public contribution applications and optional PDF/Word attachments are stored privately in Upstash. Only a Super Admin can read, accept, or reject them. Attachment downloads are server-authorized and attachment chunks expire after 90 days. Application submissions and upload initialization are rate-limited using hashed client addresses.
 
 ## Credentials and content boundary
 
@@ -29,7 +29,7 @@
 ## External checks required before production
 
 - Deploy preview functions and verify HTTPS/session behavior, secret configuration, and role restrictions.
-- Confirm Upstash rate limit behavior and account recovery process.
+- Confirm Upstash rate limit behavior, storage limits/retention, and account recovery process.
 - Inspect Sanity schemas and grant the write token minimum needed access.
 - Inspect Google Apps Script, uploaded file ACLs, retention, and server validation.
 - Verify that no private value appears in built client assets.

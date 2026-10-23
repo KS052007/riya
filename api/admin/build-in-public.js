@@ -1,7 +1,7 @@
 import { json, readStoredJson, recordAudit, requireSameOrigin, requireSession, setSecurityHeaders, writeStoredJson } from '../../server/security.js'
 
 const KEY = 'bm-bip:submissions:v1'
-const STATUSES = new Set(['pending', 'approved', 'rejected'])
+const STATUSES = new Set(['pending', 'accepted', 'rejected'])
 
 export default async function handler(req, res) {
   setSecurityHeaders(res)
@@ -21,10 +21,10 @@ export default async function handler(req, res) {
     const status = String(body.status || '')
     const index = submissions.findIndex(item => item.id === id)
     if (index < 0) return json(res, 404, { error: 'Submission not found.' })
-    if (!STATUSES.has(status)) return json(res, 400, { error: 'Choose pending, approved, or rejected.' })
+    if (!STATUSES.has(status)) return json(res, 400, { error: 'Choose pending, accepted, or rejected.' })
     submissions[index] = { ...submissions[index], status, reviewedBy: actor.username, reviewedAt: new Date().toISOString() }
     await writeStoredJson(KEY, submissions)
-    await recordAudit({ actor: actor.username, role: actor.role, action: `build_in_public.${status}`, contentType: 'buildInPublicSubmission', documentId: id })
+    await recordAudit({ actor: actor.username, role: actor.role, action: `build_in_public.application.${status}`, contentType: 'contributionApplication', documentId: id })
     return json(res, 200, { submission: submissions[index] })
   } catch {
     return json(res, 503, { error: 'Build in Public review is temporarily unavailable.' })

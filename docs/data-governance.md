@@ -12,7 +12,7 @@
 | Problem statements/resources | `problemStatements` and details on `siteEvent` | Portal event JSON | Implemented for managed events; legacy JSON fallback remains |
 | Results | Published Sanity `siteResult` records | Portal; public view only shows published records | Implemented; placeholder local results hidden |
 | Announcements | Published Sanity `siteAnnouncement` records | Portal; public banner | Implemented |
-| Build in Public submissions | Upstash Redis records | Public request form; Super Admin review and approval | Implemented; approved records appear publicly; files remain linked from GitHub/Drive |
+| Build in Public contribution requests | Upstash Redis records and optional PDF/Word attachment chunks | Public application form; Super Admin review | Private application data; admin can accept or reject |
 | Ideathon submissions | External Google Apps Script endpoint | External system | Needs external access; separate from Build in Public |
 | Branding/social links | Defaults and public Vite build variables | Source/deployment config | Verified |
 
@@ -25,13 +25,13 @@
 
 ## Admin publishing workflow
 
-The Sanity portal supports `publicationStatus` values `draft`, `review`, `published`, and `archived` for events, results, and announcements. Build in Public has a separate flow: public submissions enter a pending queue; only a Super Admin can approve or reject a request, and only approved entries appear publicly. Only a Super Admin can add/remove portal accounts. Minds remain in Sanity Studio and are not editable in this portal.
+The Sanity portal supports `publicationStatus` values `draft`, `review`, `published`, and `archived` for events, results, and announcements. Build in Public has a separate private application flow for the Open AI Agent Framework. Requests enter a pending queue; only a Super Admin can accept or reject a request. Applicant names, student emails, profiles, answers, and attachments are not published on the public page. Only a Super Admin can add/remove portal accounts. Minds remain in Sanity Studio and are not editable in this portal.
 
-**Current limitation:** Sanity-managed events, results, and announcements still use a JSON editor. Build in Public currently accepts links to externally hosted images/projects; it does not upload to Google Drive or GitHub. Existing Sanity document schemas must be checked before writing production documents.
+**Current limitation:** Sanity-managed events, results, and announcements still use a JSON editor. Contribution attachments are held in Upstash for 90 days; there is no automated applicant notification or password reset. Existing Sanity document schemas must be checked before writing production documents.
 
 ## Submission policy and retained legacy data
 
-**Verified:** Ideathon submission field/file/deadline checks in React remain UX checks only. The receiving Apps Script source is unavailable, so server-side enforcement, storage privacy, and retention are unknown. Build in Public is a separate server-validated queue with Upstash storage.
+**Verified:** Ideathon submission field/file/deadline checks in React remain UX checks only. The receiving Apps Script source is unavailable, so server-side enforcement, storage privacy, and retention are unknown. Build in Public applications are a separate server-validated queue with Upstash storage and private attachment downloads.
 
 **Verified:** The former Blitz route redirects to Build in Public, and challenge records are no longer available through the admin content API. Existing Sanity records and unused source files are retained; delete or archive them only through a separately planned data cleanup.
 
@@ -40,5 +40,5 @@ The Sanity portal supports `publicationStatus` values `draft`, `review`, `publis
 1. Configure the portal and test in preview/non-production before production use.
 2. Back up Sanity data and confirm schemas/permissions before migration or edits.
 3. Reconcile historical event dates and resource links with an authorized organizer.
-4. Inspect the Apps Script and define reviewer access, file privacy, and retention before adding submission review.
-5. Set a launch date and decide whether Build in Public updates should become admin-managed content before publishing updates.
+4. Inspect the Apps Script and define reviewer access, file privacy, and retention for Ideathon submissions.
+5. Review Upstash application and attachment retention before expanding the Build in Public application flow.

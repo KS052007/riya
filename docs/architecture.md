@@ -6,7 +6,7 @@
 
 Binary Minds is a React 19 single-page app built with Vite and React Router. `src/main.jsx` mounts the app; `src/App.jsx` declares public routes and `/kazi_binary_admins`. Route pages live in `src/pages/`, reusable UI in `src/components/`, shared integration/data code in `src/lib/`, and static assets in `public/`. Vercel rewrites browser routes to the SPA while `/api/*` routes run as Node functions.
 
-Public Minds pages read from Sanity. The former Blitz route now redirects to Build in Public; its old Sanity records remain stored but are no longer routed or managed by this portal. Build in Public accepts community project requests; Upstash stores them pending review, and Super Admin approval makes them public. Images and repository/Drive files remain externally hosted links. Event content can be managed as Sanity `siteEvent` records and is served through a public projection once managed records exist. Results are read from published `siteResult` records; placeholder local results are no longer displayed. Published `siteAnnouncement` documents are shown in a public banner. Minds remain in Sanity and are no longer editable through this portal.
+Public Minds pages read from Sanity. The former Blitz route now redirects to Build in Public; its old Sanity records remain stored but are no longer routed or managed by this portal. Build in Public lists open collaboration opportunities. Contribution applications for the Open AI Agent Framework, including optional PDF/Word attachments, are stored privately in Upstash for Super Admin review; accepted applicants are not published on the public page. Event content can be managed as Sanity `siteEvent` records and is served through a public projection once managed records exist. Results are read from published `siteResult` records; placeholder local results are no longer displayed. Published `siteAnnouncement` documents are shown in a public banner. Minds remain in Sanity and are no longer editable through this portal.
 
 Vercel functions under `api/` provide authentication, account management, Build in Public moderation, and privileged Sanity writes. Shared server helpers live outside `api/` so they are not deployed as endpoints. Admin sessions use a signed HttpOnly cookie. Roles are checked by the server. Login throttling, managed accounts, submissions, and a limited audit history use Upstash Redis. Sanity write credentials remain server-side. Super Admin bootstrap accounts and required Upstash/Sanity configuration remain deployment settings.
 
@@ -22,10 +22,10 @@ Ideathon submissions still POST to an external Google Apps Script endpoint. Its 
 | Events `/events` | Published Sanity events when managed records exist; legacy data fallback otherwise | Implemented; requires content setup |
 | Results | Published Sanity results; placeholder local records hidden | Implemented; requires verified records |
 | Announcements | Published Sanity announcements in shared public banner | Implemented; requires records |
-| Build in Public `/build-in-public` | Public submissions and approved community-project feed | Implemented; Upstash required |
+| Build in Public `/build-in-public` | Open project listing and contribution application form | Implemented; Upstash required for private applications and attachments |
 | Legacy `/blitz` and `/blitz/:slug` | Redirects to `/build-in-public` | Verified |
 | Admin `/kazi_binary_admins` | React workspace, auth, account management, moderation, Sanity document CRUD | Implemented; secrets/services required |
-| Build in Public review | Super Admin approval queue in Upstash | Implemented |
+| Contribution application review | Super Admin acceptance/rejection queue in Upstash | Implemented |
 | Sanity schemas/Studio | Not in repository | Needs external access |
 | Vercel runtime/secrets | Function handlers are in repository; deployment settings not visible | Needs external access |
 
