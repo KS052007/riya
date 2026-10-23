@@ -6,13 +6,12 @@ const COLLECTIONS = [
   { type: 'siteEvent', label: 'Events' },
   { type: 'siteResult', label: 'Results' },
   { type: 'siteAnnouncement', label: 'Announcements' },
-  { type: 'mind', label: 'Minds' },
 ]
 
 function canEditCollection(role, type) {
   if (role === 'super_admin') return true
   if (role === 'event_organizer') return ['siteEvent', 'siteResult', 'siteAnnouncement'].includes(type)
-  if (role === 'content_editor') return ['siteAnnouncement', 'mind'].includes(type)
+  if (role === 'content_editor') return ['siteAnnouncement'].includes(type)
   return false
 }
 
@@ -26,7 +25,6 @@ function newDocument(type) {
   if (type === 'siteEvent') return { ...base, status: 'upcoming', startDate: '', endDate: '', registrationLink: '', ruleBookLink: '', image: '', footerText: '', details: [] }
   if (type === 'siteResult') return { ...base, eventId: '', eyebrow: '', subtitle: '', top3: [], honorableMentions: [] }
   if (type === 'siteAnnouncement') return { ...base, body: '', startsAt: '', endsAt: '' }
-  if (type === 'mind') return { ...base, publishedAt: '', body: [] }
   return { ...base, body: '', startsAt: '', endsAt: '' }
 }
 
@@ -45,13 +43,16 @@ export default function AdminPortal() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [authChecked, setAuthChecked] = useState(false)
-  const [selectedType, setSelectedType] = useState(COLLECTIONS[0].type)
+  const [selectedType, setSelectedType] = useState('build-in-public')
   const [documents, setDocuments] = useState([])
+  const [submissions, setSubmissions] = useState([])
+  const [adminUsers, setAdminUsers] = useState([])
   const [auditEntries, setAuditEntries] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [draft, setDraft] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [newAccount, setNewAccount] = useState({ username: '', role: 'content_editor', password: '' })
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -81,6 +82,26 @@ export default function AdminPortal() {
 
   useEffect(() => {
     if (!user) return
+    if (user.role !== 'super_admin' && selectedType === 'build-in-public') {
+      setSelectedType(user.role === 'content_editor' ? 'siteAnnouncement' : 'siteEvent')
+      return
+    }
+    if (selectedType === 'build-in-public') {
+      setBusy(true)
+      request('/api/admin/build-in-public')
+        .then(result => { setSubmissions(result.submissions || []); setError('') })
+        .catch(reason => { setSubmissions([]); setError(reason.message) })
+        .finally(() => setBusy(false))
+      return
+    }
+    if (selectedType === 'accounts') {
+      setBusy(true)
+      request('/api/admin/users')
+        .then(result => { setAdminUsers(result.users || []); setError('') })
+        .catch(reason => { setAdminUsers([]); setError(reason.message) })
+        .finally(() => setBusy(false))
+      return
+    }
     if (selectedType === 'audit') {
       setBusy(true)
       request('/api/admin/audit')
@@ -115,12 +136,58 @@ export default function AdminPortal() {
       await request('/api/auth/logout', { method: 'POST', body: '{}' })
     } finally {
       setUser(null)
-      setSelectedType(COLLECTIONS[0].type)
+      setSelectedType('build-in-public')
       setDocuments([])
       setSelectedId(null)
       setDraft('')
       navigate('/kazi_binary_admins', { replace: true })
     }
+  }
+
+  async function refreshSubmissions() {
+    setBusy(true)
+    setError('')
+    try { setSubmissions((await request('/api/admin/build-in-public')).submissions || []) }
+    catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
+  async function reviewSubmission(id, status) {
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      await request('/api/admin/build-in-public', { method: 'PATCH', body: JSON.stringify({ id, status }) })
+      setNotice(`Submission ${status}.`)
+      await refreshSubmissions()
+    } catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
+  async function addAdminUser(event) {
+    event.preventDefault()
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      await request('/api/admin/users', { method: 'POST', body: JSON.stringify(newAccount) })
+      setNewAccount({ username: '', role: 'content_editor', password: '' })
+      setNotice('Account added. Share the initial password with the new team member securely.')
+      setAdminUsers((await request('/api/admin/users')).users || [])
+    } catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
+  async function removeAdminUser(username) {
+    if (!window.confirm(`Remove access for ${username}?`)) return
+    setBusy(true)
+    setError('')
+    try {
+      await request('/api/admin/users', { method: 'DELETE', body: JSON.stringify({ username }) })
+      setAdminUsers((await request('/api/admin/users')).users || [])
+      setNotice('Account access removed.')
+    } catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
   }
 
   function selectDocument(document) {
@@ -218,11 +285,13 @@ export default function AdminPortal() {
         <a className="admin-brand" href="/"><img src="/binary-minds-logo.jpg" alt="" /><span>Binary Minds</span></a>
         <p className="admin-eyebrow">Administration</p>
         <nav aria-label="Content collections" className="admin-nav">
+          {user.role === 'super_admin' && <button className={selectedType === 'build-in-public' ? 'active' : ''} onClick={() => setSelectedType('build-in-public')}>Build in Public</button>}
           {COLLECTIONS.map(collection => (
             <button key={collection.type} className={selectedType === collection.type ? 'active' : ''} onClick={() => setSelectedType(collection.type)}>
               {collection.label}
             </button>
           ))}
+          {user.role === 'super_admin' && <button className={selectedType === 'accounts' ? 'active' : ''} onClick={() => setSelectedType('accounts')}>Access management</button>}
           {user.role === 'super_admin' && <button className={selectedType === 'audit' ? 'active' : ''} onClick={() => setSelectedType('audit')}>Audit history</button>}
         </nav>
         <div className="admin-sidebar-bottom">
@@ -233,18 +302,57 @@ export default function AdminPortal() {
 
       <section className="admin-main">
         <header className="admin-page-header">
-          <div><p className="admin-eyebrow">Content governance</p><h1>{selectedType === 'audit' ? 'Audit history' : COLLECTIONS.find(item => item.type === selectedType)?.label}</h1></div>
-          {selectedType !== 'audit' && canEditCollection(user.role, selectedType) && <button className="admin-primary" onClick={startNew}>＋ New document</button>}
+          <div><p className="admin-eyebrow">{selectedType === 'accounts' ? 'Super Admin only' : 'Content governance'}</p><h1>{selectedType === 'audit' ? 'Audit history' : selectedType === 'accounts' ? 'Access management' : selectedType === 'build-in-public' ? 'Build in Public' : COLLECTIONS.find(item => item.type === selectedType)?.label}</h1></div>
+          {selectedType === 'build-in-public' && <button className="admin-secondary" onClick={refreshSubmissions} disabled={busy}>Refresh submissions</button>}
+          {selectedType !== 'audit' && selectedType !== 'accounts' && selectedType !== 'build-in-public' && canEditCollection(user.role, selectedType) && <button className="admin-primary" onClick={startNew}>＋ New document</button>}
         </header>
 
-        {selectedType !== 'audit' && <div className="admin-callout">
+        {['siteEvent', 'siteResult', 'siteAnnouncement'].includes(selectedType) && <div className="admin-callout">
           <strong>Draft → review → publish</strong>
           <span>Set `publicationStatus` to draft, review, published, or archived. Public event, result, and announcement views read only published records.</span>
         </div>}
 
         {(error || notice) && <div className={error ? 'admin-alert' : 'admin-notice'} role={error ? 'alert' : 'status'}>{error || notice}</div>}
 
-        {selectedType === 'audit' ? (
+        {selectedType === 'accounts' ? (
+          <div className="admin-accounts-layout">
+            <section className="admin-document-list">
+              <div className="admin-list-heading"><h2>Accounts with access</h2></div>
+              {busy && adminUsers.length === 0 ? <p className="admin-muted">Loading accounts…</p> : adminUsers.map(account => (
+                <article className="admin-account-row" key={account.username}>
+                  <div><strong>{account.username}</strong><small>{account.role.replaceAll('_', ' ')}{account.managed ? ' · added here' : ' · server account'}</small></div>
+                  {account.managed && <button className="admin-danger-link" onClick={() => removeAdminUser(account.username)} disabled={busy}>Remove</button>}
+                </article>
+              ))}
+            </section>
+            <form className="admin-editor admin-account-form" onSubmit={addAdminUser}>
+              <h2>Add team access</h2>
+              <p className="admin-muted">Only a Super Admin can add accounts. Each person gets their own role and password.</p>
+              <label>Email or username<input autoComplete="off" value={newAccount.username} onChange={event => setNewAccount({ ...newAccount, username: event.target.value })} required /></label>
+              <label>Role<select value={newAccount.role} onChange={event => setNewAccount({ ...newAccount, role: event.target.value })}><option value="content_editor">Content Editor</option><option value="event_organizer">Event Organizer</option><option value="evaluator">Evaluator</option><option value="read_only">Read Only</option></select></label>
+              <label>Initial password<input type="password" autoComplete="new-password" minLength={14} value={newAccount.password} onChange={event => setNewAccount({ ...newAccount, password: event.target.value })} required /></label>
+              <div className="admin-editor-actions"><span>Use at least 14 characters. Share it securely.</span><button className="admin-primary" disabled={busy}>{busy ? 'Adding…' : 'Add account'}</button></div>
+            </form>
+          </div>
+        ) : selectedType === 'build-in-public' ? (
+          <>
+            <div className="admin-callout"><strong>Submissions need your approval before going public.</strong><span>Review the project summary and source links. Only approved submissions appear on the public Build in Public page.</span></div>
+            <section className="admin-submissions">
+              {busy && submissions.length === 0 ? <p className="admin-muted">Loading submissions…</p> : submissions.length ? submissions.map(submission => (
+                <article className="admin-submission" key={submission.id}>
+                  {submission.imageUrl && <img src={submission.imageUrl} alt="" loading="lazy" />}
+                  <div className="admin-submission-content">
+                    <div className="admin-submission-heading"><span className={`admin-status admin-status-${submission.status}`}>{submission.status}</span><time>{new Date(submission.createdAt).toLocaleDateString()}</time></div>
+                    <h2>{submission.title}</h2><p>{submission.summary}</p>
+                    <div className="admin-submission-meta"><span>By {submission.name} · <a href={`mailto:${submission.email}`}>{submission.email}</a></span><a href={submission.sourceUrl} target="_blank" rel="noreferrer">Open {submission.sourceType === 'drive' ? 'Drive' : submission.sourceType === 'github' ? 'GitHub' : 'project'} link ↗</a></div>
+                    {submission.status !== 'approved' && <button className="admin-primary" disabled={busy} onClick={() => reviewSubmission(submission.id, 'approved')}>Approve and publish</button>}
+                    {submission.status !== 'rejected' && <button className="admin-danger-link" disabled={busy} onClick={() => reviewSubmission(submission.id, 'rejected')}>Reject</button>}
+                  </div>
+                </article>
+              )) : <div className="admin-empty-state"><h2>No submissions yet</h2><p>New Build in Public requests will appear here for your review.</p></div>}
+            </section>
+          </>
+        ) : selectedType === 'audit' ? (
           <section className="admin-audit-list">
             <div className="admin-list-heading"><h2>Recent security and content actions</h2><button onClick={() => request('/api/admin/audit').then(result => setAuditEntries(result.entries || [])).catch(reason => setError(reason.message))}>Refresh</button></div>
             {busy ? <p className="admin-muted">Loading audit entries…</p> : auditEntries.length ? auditEntries.map((entry, index) => (
@@ -274,7 +382,7 @@ export default function AdminPortal() {
           </form>
         </div>}
 
-        {selectedType !== 'audit' && <section className="admin-integration-note"><strong>Submissions need their own review integration.</strong> The existing Apps Script source and storage permissions are outside this project, so participant records are not shown here until that storage is verified and connected safely.</section>}
+        {['siteEvent', 'siteResult', 'siteAnnouncement'].includes(selectedType) && <section className="admin-integration-note"><strong>Managed in Sanity.</strong><span>Events, results, and announcements continue to use Sanity. Their workflow can be revised separately.</span></section>}
       </section>
     </main>
   )

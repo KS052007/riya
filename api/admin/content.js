@@ -6,14 +6,12 @@ const PERMISSIONS = {
   siteEvent: ['super_admin', 'event_organizer', 'read_only'],
   siteResult: ['super_admin', 'event_organizer', 'read_only'],
   siteAnnouncement: ['super_admin', 'content_editor', 'event_organizer', 'read_only'],
-  mind: ['super_admin', 'content_editor', 'read_only'],
 }
 
 const EDITORS = {
   siteEvent: ['super_admin', 'event_organizer'],
   siteResult: ['super_admin', 'event_organizer'],
   siteAnnouncement: ['super_admin', 'content_editor', 'event_organizer'],
-  mind: ['super_admin', 'content_editor'],
 }
 
 function canPublish(type, role) {
@@ -44,7 +42,7 @@ export default async function handler(req, res) {
   setSecurityHeaders(res)
   const type = readParam(req, 'type')
   if (!Object.hasOwn(PERMISSIONS, type)) return json(res, 400, { error: 'Unsupported content type' })
-  const user = requireSession(req, res, PERMISSIONS[type])
+  const user = await requireSession(req, res, PERMISSIONS[type])
   if (!user) return
 
   try {
@@ -99,8 +97,10 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' })
   } catch (error) {
     const message = error?.message === 'Sanity write access is not configured'
-      ? error.message
-      : 'Content request failed. Check server configuration and document validity.'
+      ? 'Sanity write access is not configured. Add SANITY_API_WRITE_TOKEN in Vercel to manage these documents.'
+      : [401, 403].includes(error?.statusCode)
+        ? 'Sanity rejected the server token. Check SANITY_API_WRITE_TOKEN permissions and project access.'
+        : 'Sanity content request failed. Check the server logs for the exact document or connection error.'
     return json(res, 503, { error: message })
   }
 }

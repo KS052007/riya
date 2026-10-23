@@ -6,13 +6,14 @@
 
 | Data | Canonical source | Update path | Status |
 |---|---|---|---|
-| Minds/articles | Sanity `mind` documents | Protected portal; role-limited JSON editing | Implemented; schema and permissions need external verification |
+| Minds/articles | Sanity `mind` documents | Sanity Studio | Sanity remains canonical; removed from this portal |
 | Legacy Blitz challenges/questions | Existing Sanity `challenge` documents | No public route or portal editing | Records retained; feature retired from the current site |
 | Events | Published Sanity `siteEvent` records | Portal; public event page reads published projection | Implemented; legacy local fallback remains until at least one managed record exists |
 | Problem statements/resources | `problemStatements` and details on `siteEvent` | Portal event JSON | Implemented for managed events; legacy JSON fallback remains |
 | Results | Published Sanity `siteResult` records | Portal; public view only shows published records | Implemented; placeholder local results hidden |
 | Announcements | Published Sanity `siteAnnouncement` records | Portal; public banner | Implemented |
-| Ideathon submissions | External Google Apps Script endpoint | External system | Needs external access; no portal review surface yet |
+| Build in Public submissions | Upstash Redis records | Public request form; Super Admin review and approval | Implemented; approved records appear publicly; files remain linked from GitHub/Drive |
+| Ideathon submissions | External Google Apps Script endpoint | External system | Needs external access; separate from Build in Public |
 | Branding/social links | Defaults and public Vite build variables | Source/deployment config | Verified |
 
 ## Data integrity
@@ -24,13 +25,13 @@
 
 ## Admin publishing workflow
 
-The portal supports `publicationStatus` values `draft`, `review`, `published`, and `archived`. New event/result/announcement/mind documents begin as drafts. Public projections expose only published event, result, and announcement records. Super Admin can publish all supported types; Event Organizer can publish event/results/announcements; Content Editor can save Minds and announcements but cannot publish Minds. These checks run on the server. Build in Public is an upcoming static page and is not yet a managed content collection.
+The Sanity portal supports `publicationStatus` values `draft`, `review`, `published`, and `archived` for events, results, and announcements. Build in Public has a separate flow: public submissions enter a pending queue; only a Super Admin can approve or reject a request, and only approved entries appear publicly. Only a Super Admin can add/remove portal accounts. Minds remain in Sanity Studio and are not editable in this portal.
 
-**Current limitation:** This first version uses a JSON editor. It does not yet provide field-specific forms, preview, review assignments, change history, or user management. Existing Sanity document schemas must be checked before writing production documents.
+**Current limitation:** Sanity-managed events, results, and announcements still use a JSON editor. Build in Public currently accepts links to externally hosted images/projects; it does not upload to Google Drive or GitHub. Existing Sanity document schemas must be checked before writing production documents.
 
 ## Submission policy and retained legacy data
 
-**Verified:** Submission field/file/deadline checks in React remain UX checks only. The receiving Apps Script source is unavailable, so server-side enforcement, storage privacy, and retention are unknown. The admin portal does not expose submissions.
+**Verified:** Ideathon submission field/file/deadline checks in React remain UX checks only. The receiving Apps Script source is unavailable, so server-side enforcement, storage privacy, and retention are unknown. Build in Public is a separate server-validated queue with Upstash storage.
 
 **Verified:** The former Blitz route redirects to Build in Public, and challenge records are no longer available through the admin content API. Existing Sanity records and unused source files are retained; delete or archive them only through a separately planned data cleanup.
 

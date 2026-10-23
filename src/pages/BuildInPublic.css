@@ -95,16 +95,42 @@
 .build-roadmap-item p { margin: .45rem 0 0; color: var(--build-muted); font-size: .9rem; line-height: 1.6; }
 .build-roadmap-mark { color: var(--purple); }
 
+.build-public-community { display:grid; grid-template-columns:minmax(240px,.75fr) minmax(0,1.25fr); gap:clamp(2rem,7vw,7rem); max-width:1240px; margin:8rem auto 0; padding-top:2.3rem; border-top:1px solid var(--border); }
+.build-community-heading h2,.build-public-feed h2 { max-width:420px; margin:0; font-size:clamp(1.8rem,3.2vw,2.8rem); line-height:1.12; letter-spacing:-.045em; font-weight:500; }
+.build-community-heading>p:last-child { max-width:380px; color:var(--build-muted); line-height:1.7; }
+.build-public-form { display:grid; gap:1.2rem; padding:1.5rem; border:1px solid var(--border); border-radius:14px; background:rgba(14,19,27,.72); }
+.build-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.build-form-grid label { display:grid; gap:.5rem; color:rgba(239,245,242,.88); font-size:.82rem; font-weight:600; }
+.build-form-grid label span { color:var(--build-muted); font-weight:400; }
+.build-form-wide { grid-column:1/-1; }
+.build-form-grid input,.build-form-grid textarea,.build-form-grid select { width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:8px; background:#0a1018; color:var(--text); padding:.78rem .85rem; font:inherit; font-weight:400; outline:none; }
+.build-form-grid textarea { resize:vertical; line-height:1.6; }
+.build-form-grid input:focus,.build-form-grid textarea:focus,.build-form-grid select:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(56,189,248,.12); }
+.build-public-form .build-public-primary { justify-self:start; border:0; font:inherit; font-weight:650; cursor:pointer; }
+.build-public-form .build-public-primary:disabled { opacity:.65; cursor:wait; }
+.build-form-note,.build-form-error,.build-form-success { margin:0; color:var(--build-muted); font-size:.82rem; line-height:1.5; }
+.build-form-error { color:#fca5a5; }.build-form-success { color:#86efac; }
+.build-honeypot { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; }
+.build-public-feed { max-width:1240px; margin:8rem auto 0; padding-top:2.3rem; border-top:1px solid var(--border); }
+.build-public-feed>.build-roadmap-heading { margin-bottom:2rem; }
+.build-project-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.2rem; }
+.build-project-card { overflow:hidden; border:1px solid var(--border); border-radius:13px; background:rgba(14,19,27,.72); }
+.build-project-image { display:block; height:190px; overflow:hidden; background:#0a1018; }.build-project-image img { width:100%; height:100%; object-fit:cover; transition:transform .35s ease; }.build-project-card:hover .build-project-image img { transform:scale(1.035); }
+.build-project-body { padding:1.15rem; }.build-project-body>span { color:var(--cyan); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; }.build-project-body h3 { margin:.65rem 0; font-size:1.12rem; }.build-project-body p { min-height:4.6em; color:var(--build-muted); font-size:.88rem; line-height:1.65; }.build-project-body>a { color:var(--text); text-decoration:none; font-size:.84rem; font-weight:650; }.build-project-body>a:hover { color:var(--cyan); }
+.build-feed-empty { color:var(--build-muted); padding:1.5rem 0; }
+
 @media (max-width: 850px) {
   .build-public-page { padding: 130px 6vw 72px; }
   .build-public-hero { grid-template-columns: 1fr; gap: 3rem; }
   .build-public-preview { min-height: 430px; }
-  .build-public-roadmap { grid-template-columns: 1fr; gap: 2rem; margin-top: 5rem; }
+  .build-public-roadmap,.build-public-community { grid-template-columns: 1fr; gap: 2rem; margin-top: 5rem; }
+  .build-project-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 520px) {
   .build-public-page { padding: 116px 5vw 56px; }
   .build-public-copy h1 { font-size: clamp(3.25rem, 15vw, 5rem); }
   .build-public-actions { align-items: flex-start; flex-direction: column; gap: 1.2rem; }
+  .build-form-grid,.build-project-grid { grid-template-columns:1fr; }.build-form-wide { grid-column:auto; }.build-public-form { padding:1rem; }.build-public-feed { margin-top:5rem; }
   .build-public-preview { min-height: 400px; padding: 1.1rem; }
   .build-preview-orbit { height: 275px; }
   .build-orbit-ring-two { width: 250px; height: 250px; }

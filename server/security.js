@@ -37,7 +37,7 @@ export function setSecurityHeaders(res) {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 }
 
-function getAdminUsers() {
+async function getAdminUsers() {
   let users
   try {
     users = JSON.parse(process.env.ADMIN_USERS_JSON || '[]')
@@ -45,14 +45,25 @@ function getAdminUsers() {
     throw new Error('ADMIN_USERS_JSON must contain valid JSON')
   }
   if (!Array.isArray(users)) throw new Error('ADMIN_USERS_JSON must be an array')
-  return users.filter(user => user && typeof user.username === 'string' && /^[A-Za-z0-9._@-]{1,64}$/.test(user.username) && typeof user.passwordHash === 'string' && ROLES.has(user.role))
+  const envUsers = users.filter(user => user && typeof user.username === 'string' && /^[A-Za-z0-9._@-]{1,64}$/.test(user.username) && typeof user.passwordHash === 'string' && ROLES.has(user.role))
+  const managedUsers = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? await readStoredJson('bm-admin:users:v1', [])
+    : []
+  if (!Array.isArray(managedUsers)) throw new Error('Stored admin accounts are invalid')
+  const merged = new Map(envUsers.map(user => [user.username.toLowerCase(), user]))
+  for (const user of managedUsers) {
+    if (user && typeof user.username === 'string' && /^[A-Za-z0-9._@-]{1,64}$/.test(user.username) && typeof user.passwordHash === 'string' && ROLES.has(user.role) && user.active !== false) {
+      merged.set(user.username.toLowerCase(), user)
+    }
+  }
+  return [...merged.values()]
 }
 
-export function assertAuthConfig() {
+export async function assertAuthConfig() {
   if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
     throw new Error('SESSION_SECRET must be at least 32 characters')
   }
-  const users = getAdminUsers()
+  const users = await getAdminUsers()
   const uniqueNames = new Set(users.map(user => user.username.toLowerCase()))
   if (!users.length || uniqueNames.size !== users.length) throw new Error('Admin users must be configured with unique usernames')
   if (!users.some(user => user.role === 'super_admin')) throw new Error('At least one Super Admin must be configured')
@@ -92,7 +103,7 @@ export function createSession(user) {
   return `${payload}.${sign(payload)}`
 }
 
-export function readSession(req) {
+export async function readSession(req) {
   const cookies = Object.fromEntries((req.headers.cookie || '').split(';').map(part => {
     const [key, ...value] = part.trim().split('=')
     return [key, value.join('=')]
@@ -107,7 +118,7 @@ export function readSession(req) {
   try {
     const session = JSON.parse(Buffer.from(payload, 'base64url').toString())
     if (session.exp <= Math.floor(Date.now() / 1000)) return null
-    const user = getAdminUsers().find(entry => entry.username === session.username && entry.role === session.role)
+    const user = (await getAdminUsers()).find(entry => entry.username === session.username && entry.role === session.role)
     if (!user) return null
     const fingerprint = createHmac('sha256', process.env.SESSION_SECRET).update(user.passwordHash).digest('hex')
     if (fingerprint !== session.credentialFingerprint) return null
@@ -189,21 +200,21 @@ export async function readAudit() {
 }
 
 export async function authenticate(username, password) {
-  const users = getAdminUsers()
+  const users = await getAdminUsers()
   const user = users.find(entry => entry.username.toLowerCase() === username.toLowerCase())
   const hashToCheck = user?.passwordHash || users[0]?.passwordHash
   if (!hashToCheck || !(await verifyPassword(password, hashToCheck))) return null
   return user || null
 }
 
-export function requireSession(req, res, roles = []) {
+export async function requireSession(req, res, roles = []) {
   try {
-    assertAuthConfig()
+    await assertAuthConfig()
   } catch {
     json(res, 503, { error: 'Admin authentication is not configured' })
     return null
   }
-  const user = readSession(req)
+  const user = await readSession(req)
   if (!user) {
     json(res, 401, { error: 'Authentication required' })
     return null
@@ -213,6 +224,39 @@ export function requireSession(req, res, roles = []) {
     return null
   }
   return user
+}
+
+export async function readStoredJson(key, fallback = null) {
+  const result = await redisCommand(['GET', key])
+  if (result === null) return fallback
+  try { return JSON.parse(result) } catch { throw new Error('Stored admin data is invalid') }
+}
+
+export async function writeStoredJson(key, value) {
+  await redisCommand(['SET', key, JSON.stringify(value)])
+}
+
+export async function checkPublicSubmissionLimit(req) {
+  const address = String(req.headers['x-forwarded-for'] || 'unknown').split(',').at(-1).trim()
+  const digest = createHmac('sha256', process.env.SESSION_SECRET || 'binary-minds').update(address).digest('hex')
+  const key = `bm-bip:rate:${digest}`
+  const result = await redisCommand(['EVAL', "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],3600) end; return n", '1', key])
+  return Number(result) <= 5
+}
+
+async function redisCommand(command) {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url?.startsWith('https://') || !token) throw new Error('Upstash storage is not configured')
+  const response = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify([command]),
+  })
+  if (!response.ok) throw new Error('Upstash storage is unavailable')
+  const result = await response.json()
+  if (result?.[0]?.error) throw new Error('Upstash command failed')
+  return result?.[0]?.result ?? null
 }
 
 export { COOKIE_NAME, ROLES }

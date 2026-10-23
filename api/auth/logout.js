@@ -3,7 +3,7 @@ import { clearSessionCookie, json, recordAudit, requireMethod, requireSameOrigin
 export default async function handler(req, res) {
   setSecurityHeaders(res)
   if (!requireMethod(req, res, 'POST') || !requireSameOrigin(req, res)) return
-  const user = requireSession(req, res)
+  const user = await requireSession(req, res)
   if (!user) return
   await recordAudit({ actor: user.username, role: user.role, action: 'auth.logout' }).catch(() => {})
   clearSessionCookie(res)

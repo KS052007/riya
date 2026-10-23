@@ -31,25 +31,25 @@ test('password hashes verify only the matching password', async () => {
   assert.equal(await verifyPassword('anything', 'not-a-hash'), false)
 })
 
-test('session cookies are signed and resolve to the configured role', () => {
+test('session cookies are signed and resolve to the configured role', async () => {
   const token = createSession(adminUser)
-  assert.deepEqual(readSession({ headers: { cookie: `__Host-bm_admin=${token}` } }), {
+  assert.deepEqual(await readSession({ headers: { cookie: `__Host-bm_admin=${token}` } }), {
     username: 'test-admin', role: 'super_admin',
   })
 })
 
-test('tampering with a session invalidates it', () => {
+test('tampering with a session invalidates it', async () => {
   const token = createSession(adminUser)
   const [payload, signature] = token.split('.')
   const alteredSignature = `${signature.slice(0, -1)}${signature.endsWith('a') ? 'b' : 'a'}`
   const changed = `${payload}.${alteredSignature}`
-  assert.equal(readSession({ headers: { cookie: `__Host-bm_admin=${changed}` } }), null)
+  assert.equal(await readSession({ headers: { cookie: `__Host-bm_admin=${changed}` } }), null)
 })
 
-test('credential or role changes revoke existing sessions', () => {
+test('credential or role changes revoke existing sessions', async () => {
   const token = createSession(adminUser)
   process.env.ADMIN_USERS_JSON = JSON.stringify([{ ...adminUser, role: 'content_editor' }])
-  assert.equal(readSession({ headers: { cookie: `__Host-bm_admin=${token}` } }), null)
+  assert.equal(await readSession({ headers: { cookie: `__Host-bm_admin=${token}` } }), null)
 })
 
 test('password hashing rejects weak passwords', async () => {

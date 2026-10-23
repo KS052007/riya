@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   setSecurityHeaders(res)
   if (!requireMethod(req, res, 'POST') || !requireSameOrigin(req, res)) return
   try {
-    assertAuthConfig()
+    await assertAuthConfig()
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
     const username = String(body?.username || '').trim()
     const password = String(body?.password || '')

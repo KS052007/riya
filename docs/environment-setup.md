@@ -36,7 +36,7 @@ Set these in local `.env.local` for `vercel dev` and in the Vercel secret manage
 | `SANITY_DATASET` | Sanity server dataset; defaults to `production` |
 | `SANITY_API_WRITE_TOKEN` | Server-only Sanity token with minimum required write permissions |
 
-Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluator`, and `read_only`. Current portal capabilities: Super Admin manages all supported types and deletes; Content Editor manages Minds and announcements; Event Organizer manages events/results/announcements; evaluator/read-only have no content write permissions. Blitz challenges are no longer a supported type. A Super Admin can view auth/content action audit entries. Submission evaluation is not connected yet. Manage accounts and roles by updating the server-side `ADMIN_USERS_JSON` value; there is no in-portal user manager yet.
+Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluator`, and `read_only`. The environment variable bootstraps Super Admin accounts. A signed-in Super Admin can add and remove non-super-admin accounts in Access Management; those accounts are stored in Upstash and are combined with the environment bootstrap accounts. Minds are no longer editable in this portal and remain managed through Sanity. Events, results, and announcements remain Sanity-backed for now. Build in Public submissions use Upstash: public requests stay pending until a Super Admin approves them.
 
 ## Bootstrap the first Super Admin
 
@@ -47,7 +47,7 @@ Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluat
 5. Create a Sanity API token with the minimum required write access.
 6. Save all values in `.env.local` or the deployment secret manager. Never commit them.
 
-The login API fails closed if the session secret, user record, or rate-limit service is missing. Content reads/writes fail when the Sanity write token is missing.
+The login API fails closed if the session secret, user record, or rate-limit service is missing. Sanity document writes require the Sanity write token. Build in Public images and source files are linked from public HTTPS URLs (for example, GitHub or a publicly shared Drive file); this app does not upload files to Drive.
 
 If the deployed admin page shows “Admin sign-in is not configured,” add `SESSION_SECRET`, `ADMIN_USERS_JSON`, `UPSTASH_REDIS_REST_URL`, and `UPSTASH_REDIS_REST_TOKEN` to the Vercel project's server-side environment settings for the deployment environment, then redeploy. The account hash from a local `.env.local` file is not uploaded by Git and does not configure the deployed site.
 

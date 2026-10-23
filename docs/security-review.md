@@ -8,7 +8,8 @@
 - API sessions use an HMAC-signed cookie with HttpOnly, Secure, SameSite=Strict flags and an eight-hour expiry. Password hashes use Node scrypt. Password/role changes invalidate the session.
 - Content operations enforce role allowlists in the server. Editors cannot delete. Publishing rights are role-limited. Same-origin checks protect mutations.
 - Login throttling uses Upstash Redis and fails closed when Redis is unavailable. The IP/username pair is limited to eight tries per 15 minutes.
-- This code requires production configuration and has not been verified against a deployed Vercel project. Account administration and password recovery are not yet implemented. A Super Admin can read recent auth/content action records stored in Upstash Redis (one-year TTL, capped history); this is an operational audit log, not a tamper-proof compliance ledger.
+- A Super Admin can add/remove non-super-admin accounts through a server-checked endpoint. Password hashes and account records are stored in Upstash Redis; bootstrap Super Admin accounts remain in `ADMIN_USERS_JSON`. Account recovery is not implemented. A Super Admin can read recent auth/content action records stored in Upstash Redis (one-year TTL, capped history); this is an operational audit log, not a tamper-proof compliance ledger.
+- Public Build in Public submissions are stored in Upstash as pending records. Only a Super Admin can approve or reject them; only approved records are exposed publicly. Submission rate limiting uses hashed client addresses. Source and image URLs are links to external services and are not copied into this app.
 
 ## Credentials and content boundary
 
@@ -23,7 +24,7 @@
 - Ideathon deadline and file checks are client-side. Apps Script validation and private storage are outside this repository.
 - JavaScript examples run through `new Function` in the public page context. The code runner is not isolated from the page.
 - Python uses Pyodide from a third-party CDN; resource/isolation limits are not configured here.
-- Account management and secure account recovery are not implemented; admin accounts/roles are configured through server secrets.
+- Account recovery is not implemented. Super Admin bootstrap accounts still require server-side environment configuration.
 
 ## External checks required before production
 
