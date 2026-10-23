@@ -1,43 +1,38 @@
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, character => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[character])
-}
-
 export async function sendAcceptanceEmail(submission) {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM
-  if (!apiKey || !from) {
-    throw new Error('Acceptance email is not configured. Add RESEND_API_KEY and EMAIL_FROM in Vercel.')
+  const endpoint = process.env.GOOGLE_APPS_SCRIPT_EMAIL_URL
+  const secret = process.env.GOOGLE_APPS_SCRIPT_EMAIL_SECRET
+  if (!endpoint || !secret) {
+    throw new Error('Acceptance email is not configured. Add the Google Apps Script email URL and secret in Vercel.')
   }
   if (!submission.studentEmail || !/^\S+@\S+\.\S+$/.test(submission.studentEmail)) {
     throw new Error('The applicant email address is missing or invalid.')
   }
 
-  const project = String(submission.project || 'Binary Minds Open AI Agent Framework').replace(/[\r\n]+/g, ' ').trim()
-  const name = escapeHtml(submission.fullName || 'Contributor')
-  const safeProject = escapeHtml(project)
-  const text = `Hi ${submission.fullName || 'Contributor'},\n\nYour contribution request for ${project} has been accepted. The Binary Minds team will follow up with next steps.\n\nBinary Minds`
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
-      to: [submission.studentEmail],
-      subject: `Your contribution request for ${project} was accepted`,
-      text,
-      html: `<p>Hi ${name},</p><p>Your contribution request for <strong>${safeProject}</strong> has been accepted.</p><p>The Binary Minds team will follow up with next steps.</p><p>Binary Minds</p>`,
-    }),
-  })
+  let response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret,
+        applicationId: submission.id,
+        studentEmail: submission.studentEmail,
+        fullName: submission.fullName || 'Contributor',
+        project: submission.project || 'Binary Minds Open AI Agent Framework',
+      }),
+      signal: AbortSignal.timeout(20000),
+    })
+  } catch {
+    throw new Error('Google Apps Script could not be reached. Check its deployment URL and try again.')
+  }
 
-  if (!response.ok) {
-    throw new Error('The email provider could not send the message. Check the Resend API key, verified sender, and recipient address.')
+  let result
+  try {
+    result = await response.json()
+  } catch {
+    throw new Error('Google Apps Script returned an unreadable response. Check the web app deployment and try again.')
+  }
+  if (!response.ok || result.ok !== true) {
+    throw new Error(typeof result.error === 'string' ? result.error : 'Google Apps Script could not send the email.')
   }
 }
