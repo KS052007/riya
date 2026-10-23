@@ -192,10 +192,10 @@ export default function BuildInPublic() {
 
       {isFormOpen && <div className="contribution-overlay" data-lenis-prevent onMouseDown={event => { if (event.target === event.currentTarget) closeForm() }}>
         <section className="contribution-modal" role="dialog" aria-modal="true" aria-labelledby="contribution-title">
-          <header className="contribution-modal-header"><div><span>Contribution Request</span><h2 id="contribution-title">{selectedProject?.title}</h2></div><button type="button" className="contribution-close" onClick={closeForm} aria-label="Close contribution form">×</button></header>
-          {formState.success ? <div className="contribution-success"><div className="contribution-success-mark">✓</div><h3>Request received</h3><p>Your contribution request is now in the review queue. A Binary Minds admin will contact you at the student email you provided.</p><button className="build-join-button" onClick={closeForm}>Done</button></div> : <form className="contribution-form" data-lenis-prevent onSubmit={submitApplication}>
-            <div className="contribution-guideline-callout"><strong>Contribution Guidelines:</strong><p>{selectedProject?.guidelines}</p></div>
-            <div className="contribution-fields-grid">
+          <header className="contribution-modal-header"><div><span>Contribution Request</span><h2 id="contribution-title">Contribute to <strong>Binary Minds</strong></h2><p>{selectedProject?.title} · Share your skills, ideas and experience with our developer community.</p><i /></div><button type="button" className="contribution-close" onClick={closeForm} aria-label="Close contribution form">×</button></header>
+          <div className="contribution-modal-layout">
+          {formState.success ? <div className="contribution-success"><div className="contribution-success-mark">✓</div><h3>Request received</h3><p>Your contribution request is now in the review queue. A Binary Minds admin will contact you at the student email you provided.</p><button className="build-join-button" onClick={closeForm}>Done</button></div> : <form className="contribution-form" onSubmit={submitApplication}>
+            <div className="contribution-fields-scroll" data-lenis-prevent><div className="contribution-fields-grid">
               <label><span>Full Name <b>*</b></span><input name="fullName" value={form.fullName} onChange={updateField} autoComplete="name" maxLength={100} autoFocus required /></label>
               <label><span>Student Email <b>*</b></span><input name="studentEmail" type="email" value={form.studentEmail} onChange={updateField} autoComplete="email" placeholder="student@iitmbs.ac.in" maxLength={160} required /></label>
               <label><span>GitHub ID / Profile <b>*</b></span><input name="githubProfile" type="url" value={form.githubProfile} onChange={updateField} placeholder="https://github.com/username" maxLength={300} required /></label>
@@ -213,8 +213,15 @@ export default function BuildInPublic() {
               <label className="contribution-honeypot" aria-hidden="true">Website<input name="website" tabIndex="-1" autoComplete="off" value={form.website} onChange={updateField} /></label>
             </div>
             {formState.error && <p className="contribution-error" role="alert">{formState.error}</p>}
-            <footer className="contribution-form-actions"><button type="button" className="contribution-cancel" onClick={closeForm} disabled={formState.busy}>Cancel</button><button type="submit" className="build-join-button" disabled={formState.busy}>{formState.busy ? 'Submitting request…' : 'Submit Contribution Request'}</button></footer>
+            </div><footer className="contribution-form-actions"><p>Your details are shared only with the Binary Minds review team.</p><div><button type="button" className="contribution-cancel" onClick={closeForm} disabled={formState.busy}>Cancel</button><button type="submit" className="build-join-button" disabled={formState.busy}>{formState.busy ? 'Submitting request…' : 'Submit Request'}</button></div></footer>
           </form>}
+            <aside className="contribution-side-panel">
+              <section className="contribution-guidelines-panel"><span className="contribution-side-eyebrow">Contribution guidelines</span><p>{selectedProject?.guidelines}</p>{selectedProject?.tags?.length > 0 && <><span className="contribution-side-eyebrow contribution-looking-for">Looking for</span><div className="contribution-side-tags">{selectedProject.tags.map(tag => <span key={tag}>{tag}</span>)}</div></>}</section>
+              <div className={`contribution-side-visual ${selectedProject?.imageDriveUrl ? 'has-image' : ''}`}>
+                {driveImageSource(selectedProject?.imageDriveUrl) ? <img src={driveImageSource(selectedProject.imageDriveUrl)} alt="" /> : <><img src="/binary-minds-logo.jpg" alt="" /><span>Build<br />Together</span></>}
+              </div>
+            </aside>
+          </div>
         </section>
       </div>}
     </PageTransition>

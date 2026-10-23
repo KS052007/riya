@@ -180,3 +180,52 @@ body.build-modal-open { overflow:hidden; }
 .contribution-form-actions{padding-top:1rem;border-top:1px solid rgba(148,163,184,.14)}
 .contribution-close{flex:0 0 42px}
 @media(max-width:600px){.contribution-overlay{padding:.5rem}.contribution-modal{margin-bottom:.5rem;border-radius:14px}.contribution-modal-header{border-radius:14px 14px 0 0;padding:1rem}.contribution-modal-header h2{font-size:1.3rem}.contribution-form{padding:1rem}.contribution-fields-grid{grid-template-columns:1fr}.contribution-field-wide,.contribution-attachment-field{grid-column:auto}.contribution-form-actions{flex-direction:column-reverse}.contribution-form-actions button{width:100%}}
+
+/* Request modal: keep the frame fixed and limit scrolling to the form fields. */
+.contribution-overlay{display:grid;place-items:center;overflow:hidden;padding:3vh 3vw;background:rgba(2,7,15,.82);backdrop-filter:blur(16px)}
+.contribution-modal{display:flex;flex-direction:column;width:min(1390px,96vw);height:min(86vh,900px);max-height:94vh;margin:0;overflow:hidden;border:1px solid rgba(56,189,248,.22);border-radius:16px;background:linear-gradient(145deg,#07111d,#080d17 62%,#0b1220);box-shadow:0 35px 100px rgba(0,0,0,.58),0 0 80px rgba(14,165,233,.07)}
+.contribution-modal-header{position:relative;top:auto;z-index:1;flex:0 0 auto;min-height:124px;box-sizing:border-box;padding:26px 34px 22px;border-radius:16px 16px 0 0;border-bottom:1px solid rgba(148,163,184,.15);background:linear-gradient(110deg,rgba(8,20,34,.98),rgba(8,13,24,.96));backdrop-filter:none}
+.contribution-modal-header>div>span{padding:0;background:none;color:#38d3f2;font-size:.67rem;letter-spacing:.22em;text-transform:uppercase}
+.contribution-modal-header h2{margin:9px 0 4px;max-width:unset;color:#e7f1ff;font-size:clamp(1.45rem,2.3vw,2rem);font-weight:650;letter-spacing:-.035em}
+.contribution-modal-header h2 strong{color:#22c8e9;font-weight:650}
+.contribution-modal-header p{margin:0;color:#9db1c9;font-size:.83rem;line-height:1.5}
+.contribution-modal-header>div>i{display:block;width:50px;height:2px;margin-top:14px;background:#22d3ee}
+.contribution-close{width:40px;height:40px;flex-basis:40px;border:0;background:rgba(148,163,184,.08);color:#cfe8ff;font-size:1.5rem}
+.contribution-modal-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,350px);flex:1;min-height:0;padding:0 24px 22px 0}
+.contribution-form{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;gap:0;padding:20px 28px 0 34px}
+.contribution-fields-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 14px 18px 0;scrollbar-width:thin;scrollbar-color:rgba(56,189,248,.5) rgba(148,163,184,.08)}
+.contribution-fields-scroll::-webkit-scrollbar{width:7px}.contribution-fields-scroll::-webkit-scrollbar-track{border-radius:8px;background:rgba(148,163,184,.07)}.contribution-fields-scroll::-webkit-scrollbar-thumb{border-radius:8px;background:rgba(56,189,248,.42)}
+.contribution-fields-grid{gap:16px 22px}
+.contribution-fields-grid label{gap:7px;color:#d2e2f4;font-size:.78rem;font-weight:600}
+.contribution-fields-grid label>span{line-height:1.3}
+.contribution-fields-grid label b{color:#fb7185}
+.contribution-fields-grid input,.contribution-fields-grid textarea{border-color:#263951;border-radius:7px;background:rgba(10,20,34,.82);padding:12px 14px;color:#ecf6ff;font-size:.83rem}
+.contribution-fields-grid input{min-height:44px}
+.contribution-fields-grid textarea{min-height:88px;resize:vertical}
+.contribution-fields-grid input::placeholder,.contribution-fields-grid textarea::placeholder{color:#7189a5}
+.contribution-fields-grid input:focus,.contribution-fields-grid textarea:focus{border-color:#22c8e9;box-shadow:0 0 0 2px rgba(34,211,238,.12)}
+.contribution-attachment-field{gap:8px}
+.contribution-field-label{color:#cbdcf0;font-size:.76rem}
+.contribution-dropzone{min-height:72px;border-color:rgba(34,211,238,.45);background:rgba(5,18,32,.55);font-size:.83rem}
+.contribution-form-actions{flex:0 0 auto;justify-content:space-between;align-items:center;gap:16px;margin-top:12px;padding:14px 0 0;border-top:1px solid rgba(148,163,184,.13)}
+.contribution-form-actions>p{margin:0;color:#8298b2;font-size:.7rem;line-height:1.45}
+.contribution-form-actions>div{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-shrink:0}
+.contribution-cancel{border-color:#29415b;color:#d2e2f4}
+.contribution-form-actions .build-join-button{background:#22c8e9;color:#04121d}
+.contribution-side-panel{display:flex;flex-direction:column;min-width:0;min-height:0;margin:22px 0 0;padding-left:22px;border-left:1px solid rgba(148,163,184,.17)}
+.contribution-guidelines-panel{flex:0 0 auto;padding:20px 18px;border:1px solid rgba(56,189,248,.17);border-radius:12px;background:linear-gradient(145deg,rgba(7,22,38,.85),rgba(9,17,29,.7))}
+.contribution-side-eyebrow{color:#33d2f0;font-size:.64rem;font-weight:700;letter-spacing:.17em;text-transform:uppercase}
+.contribution-guidelines-panel p{margin:12px 0 18px;color:#bfd0e4;font-size:.8rem;line-height:1.65;white-space:pre-wrap}
+.contribution-looking-for{display:block;margin-bottom:11px}
+.contribution-side-tags{display:flex;flex-wrap:wrap;gap:8px}
+.contribution-side-tags span{padding:7px 11px;border:1px solid rgba(34,211,238,.55);border-radius:999px;color:#55def5;font-size:.68rem;line-height:1.2}
+.contribution-side-visual{position:relative;flex:1;min-height:140px;margin-top:14px;overflow:hidden;border-radius:10px;background:radial-gradient(ellipse at 50% 20%,rgba(17,111,180,.28),transparent 60%),linear-gradient(145deg,#071526,#08101d 65%,#061326)}
+.contribution-side-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.contribution-side-visual.has-image:after{position:absolute;inset:0;content:'';background:linear-gradient(0deg,rgba(3,11,22,.45),transparent 70%)}
+.contribution-side-visual:not(.has-image){display:grid;place-items:center}
+.contribution-side-visual:not(.has-image) img{position:relative;inset:auto;width:70px;height:70px;border:1px solid rgba(34,211,238,.45);border-radius:50%;object-fit:cover;box-shadow:0 0 36px rgba(34,211,238,.12)}
+.contribution-side-visual>span{position:absolute;right:14%;bottom:12%;z-index:1;color:#d7ebff;font-family:Georgia,serif;font-size:1.2rem;font-style:italic;line-height:1.3}
+.contribution-success{align-content:center;min-width:0;padding:28px}
+.contribution-success .build-join-button{background:#22c8e9;color:#04121d}
+@media(max-width:760px){.contribution-overlay{padding:2vh 2vw}.contribution-modal{width:96vw;height:94vh}.contribution-modal-header{min-height:106px;padding:18px 20px}.contribution-modal-layout{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);padding:0 14px 14px}.contribution-side-panel{order:-1;min-height:0;margin:12px 6px 0;padding:0 0 12px;border:0;border-bottom:1px solid rgba(148,163,184,.15)}.contribution-guidelines-panel{padding:12px 14px}.contribution-guidelines-panel p{margin:7px 0 10px;font-size:.74rem}.contribution-looking-for{display:none}.contribution-side-tags{gap:6px}.contribution-side-tags span{padding:5px 8px}.contribution-side-visual{display:none}.contribution-form{padding:14px 8px 0 6px}.contribution-fields-scroll{padding-right:8px}.contribution-fields-grid{grid-template-columns:1fr 1fr;gap:12px}.contribution-fields-grid .contribution-field-wide,.contribution-fields-grid .contribution-attachment-field{grid-column:1/-1}.contribution-form-actions{padding-top:10px}.contribution-form-actions>p{max-width:180px}}
+@media(max-width:520px){.contribution-modal-header h2{font-size:1.25rem}.contribution-modal-header p{max-width:calc(100% - 20px);font-size:.72rem}.contribution-modal-layout{padding:0 10px 10px}.contribution-side-panel{margin-top:8px}.contribution-guidelines-panel{padding:9px 11px}.contribution-guidelines-panel p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.contribution-form{padding:10px 5px 0}.contribution-fields-grid{grid-template-columns:1fr;gap:10px}.contribution-fields-grid .contribution-field-wide,.contribution-fields-grid .contribution-attachment-field{grid-column:auto}.contribution-fields-grid textarea{min-height:74px}.contribution-form-actions{align-items:stretch;flex-direction:column}.contribution-form-actions>p{max-width:none}.contribution-form-actions>div{display:grid;grid-template-columns:auto 1fr}.contribution-form-actions>div button{width:100%;padding-inline:.65rem;font-size:.74rem}}
