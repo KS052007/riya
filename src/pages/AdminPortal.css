@@ -38,3 +38,5 @@
 @media(max-width:1000px){.admin-bip-project-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.admin-bip-project-row{grid-template-columns:minmax(0,1fr)}.admin-bip-project-actions{justify-content:flex-end}.admin-bip-tabs{overflow-x:auto}.admin-bip-tabs button{white-space:nowrap}}
 .admin-email-status{margin:12px 0!important;font-size:.82rem}.admin-email-status.is-sent{color:#a7f3d0}.admin-email-status.is-failed{color:#fecaca}.admin-email-retry{margin:12px 12px 0 0}
+.admin-submission-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px}.admin-submission-actions .admin-email-retry{margin:0}.admin-submission-actions .admin-danger-link{padding:8px 0}.admin-submission-actions .admin-delete-submission{margin-left:auto;color:#fca5a5}
+@media(max-width:560px){.admin-submission-actions{gap:8px}.admin-submission-actions .admin-delete-submission{margin-left:0}}

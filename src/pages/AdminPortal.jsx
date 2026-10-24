@@ -253,6 +253,26 @@ export default function AdminPortal() {
     finally { setBusy(false) }
   }
 
+  async function deleteSubmission(submission) {
+    const hasAttachment = Boolean(submission.attachment)
+    const confirmed = window.confirm(
+      `Permanently delete the contribution request from ${submission.fullName}?${hasAttachment ? ' Its uploaded attachment will also be deleted from Upstash.' : ''}`,
+    )
+    if (!confirmed) return
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      await request('/api/admin/build-in-public', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: submission.id }),
+      })
+      await refreshSubmissions()
+      setNotice(`Contribution request${hasAttachment ? ' and attachment' : ''} deleted.`)
+    } catch (reason) { setError(reason.message) }
+    finally { setBusy(false) }
+  }
+
   async function addAdminUser(event) {
     event.preventDefault()
     setBusy(true)
@@ -425,7 +445,7 @@ export default function AdminPortal() {
           </div>
         ) : selectedType === 'build-in-public' ? (
           <>
-            <div className="admin-callout"><strong>Manage public projects and review private requests.</strong><span>Published projects and their guidelines appear on the public Build in Public page. Draft and archived projects stay hidden. Applicant details and attachments are visible only to Super Admins.</span></div>
+            <div className="admin-callout"><strong>Manage public projects and review private requests.</strong><span>Published projects and their guidelines appear on the public Build in Public page. Draft and archived projects stay hidden. Applicant details and attachments are visible only to Super Admins. PDF/Word attachments are stored as private chunks in Upstash Redis for 90 days; deleting a request also deletes its attachment.</span></div>
             <nav className="admin-bip-tabs" aria-label="Build in Public sections">
               <button type="button" className={bipSection === 'projects' ? 'active' : ''} onClick={() => { setBipSection('projects'); setError(''); setNotice('') }}>Projects</button>
               <button type="button" className={bipSection === 'applications' ? 'active' : ''} onClick={() => { setBipSection('applications'); setError(''); setNotice('') }}>Contribution requests <span>{submissions.length}</span></button>
@@ -462,9 +482,12 @@ export default function AdminPortal() {
                     <h3>Why they want to contribute</h3><p>{submission.motivation}</p>
                     <h3>Contribution idea</h3><p>{submission.contributionIdea}</p>
                     {submission.attachment && <button className="admin-secondary admin-attachment-button" disabled={busy} onClick={() => downloadAttachment(submission)}>Download {submission.attachment.fileName} ({(submission.attachment.size / 1024 / 1024).toFixed(1)} MB)</button>}
-                    {submission.status === 'accepted' && submission.emailNotificationStatus !== 'sent' && <button className="admin-secondary admin-email-retry" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Retry acceptance email</button>}
-                    {submission.status !== 'accepted' && <button className="admin-primary" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Accept request</button>}
-                    {submission.status !== 'rejected' && <button className="admin-danger-link" disabled={busy} onClick={() => reviewSubmission(submission.id, 'rejected')}>Reject</button>}
+                    <div className="admin-submission-actions">
+                      {submission.status === 'accepted' && submission.emailNotificationStatus !== 'sent' && <button className="admin-secondary admin-email-retry" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Retry acceptance email</button>}
+                      {submission.status !== 'accepted' && <button className="admin-primary" disabled={busy} onClick={() => reviewSubmission(submission.id, 'accepted')}>Accept request</button>}
+                      {submission.status !== 'rejected' && <button className="admin-danger-link" disabled={busy} onClick={() => reviewSubmission(submission.id, 'rejected')}>Reject</button>}
+                      <button className="admin-danger-link admin-delete-submission" disabled={busy} onClick={() => deleteSubmission(submission)}>Delete request</button>
+                    </div>
                   </div>
                 </article>
               )) : <div className="admin-empty-state"><h2>No contribution requests yet</h2><p>Requests for published Build in Public projects will appear here for Super Admin review.</p></div>}
