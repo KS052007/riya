@@ -12,7 +12,7 @@ import {
 } from '../../server/security.js'
 
 const USERS_KEY = 'bm-admin:users:v1'
-const ROLES = new Set(['content_editor', 'event_organizer', 'evaluator', 'read_only'])
+const ROLES = new Set(['super_admin', 'content_editor', 'event_organizer', 'evaluator', 'read_only'])
 const USERNAME = /^[A-Za-z0-9._@-]{1,64}$/
 
 export default async function handler(req, res) {
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       const role = String(body.role || '')
       const password = String(body.password || '')
       if (!USERNAME.test(username)) return json(res, 400, { error: 'Enter a valid email or username (1–64 letters, numbers, dots, underscores, or hyphens).' })
-      if (!ROLES.has(role)) return json(res, 400, { error: 'Choose a supported non-super-admin role.' })
+      if (!ROLES.has(role)) return json(res, 400, { error: 'Choose a supported admin role.' })
       if (password.length < 14 || password.length > 1024) return json(res, 400, { error: 'Set an initial password between 14 and 1024 characters.' })
       const allUsers = JSON.parse(process.env.ADMIN_USERS_JSON || '[]')
       if ([...allUsers, ...managedUsers].some(user => user.username?.toLowerCase() === username.toLowerCase() && user.active !== false)) {
@@ -62,6 +62,15 @@ export default async function handler(req, res) {
       return json(res, 404, { error: 'Managed account not found.' })
     }
     if (username.toLowerCase() === actor.username.toLowerCase()) return json(res, 400, { error: 'You cannot remove your own account.' })
+    if (managedUsers[index].role === 'super_admin') {
+      const remainingSuperAdmins = [
+        ...envUsers.filter(user => user.active !== false),
+        ...managedUsers.filter((user, managedIndex) => managedIndex !== index && user.active !== false),
+      ].filter(user => user.role === 'super_admin')
+      if (remainingSuperAdmins.length === 0) {
+        return json(res, 400, { error: 'You cannot remove the last Super Admin account.' })
+      }
+    }
     managedUsers.splice(index, 1)
     await writeStoredJson(USERS_KEY, managedUsers)
     await recordAudit({ actor: actor.username, role: actor.role, action: 'admin.user_removed', contentType: 'adminUser', documentId: username })
