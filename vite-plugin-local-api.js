@@ -68,8 +68,8 @@ export function localApi() {
 
       // The admin writes through the server's project; the public pages read
       // the VITE_ project. If they differ, nothing saved shows up on the site.
-      const serverProject = process.env.SANITY_PROJECT_ID || process.env.SANITY_API_PROJECT_ID || 'pirhl038'
-      const siteProject = process.env.VITE_SANITY_PROJECT_ID || 'pirhl038'
+      const serverProject = process.env.SANITY_PROJECT_ID || process.env.SANITY_API_PROJECT_ID || '94wv2qdl'
+      const siteProject = process.env.VITE_SANITY_PROJECT_ID || '94wv2qdl'
       if (serverProject !== siteProject) {
         console.warn(`\n\x1b[33m⚠  Sanity mismatch: the admin writes to project "${serverProject}" but the site reads "${siteProject}".\n   Set SANITY_PROJECT_ID and VITE_SANITY_PROJECT_ID to the same project in .env.\x1b[0m\n`)
       }

@@ -42,7 +42,7 @@ Supported roles are `super_admin`, `content_editor`, `event_organizer`, `evaluat
 
 ## Bootstrap the first Super Admin
 
-1. Run `npm run admin:hash-password` in an interactive terminal. Password input is masked and must be at least 14 characters.
+1. Run `npm run admin:hash-password` in an interactive terminal. Input is masked and must be at least 14 characters — a memorable passphrase of a few words (for example `purple-tiger-kaziranga`) is easy to remember and still strong.
 2. Store the resulting `scrypt$...` hash in an `ADMIN_USERS_JSON` entry, for example the JSON shape `[{"username":"owner","role":"super_admin","passwordHash":"<generated hash>"}]`.
 3. Generate a random session secret with `npm run admin:session-secret`.
 4. Create an Upstash Redis database and configure its REST URL/token.

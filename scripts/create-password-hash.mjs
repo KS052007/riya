@@ -12,7 +12,7 @@ terminal.close()
 input.setRawMode(true)
 input.resume()
 let password = ''
-process.stdout.write('Admin password (14+ characters): ')
+process.stdout.write('Admin passphrase (14+ characters — a few memorable words work great): ')
 
 input.on('data', async chunk => {
   for (const character of chunk.toString()) {

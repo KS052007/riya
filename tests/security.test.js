@@ -53,7 +53,7 @@ test('credential or role changes revoke existing sessions', async () => {
 })
 
 test('password hashing rejects weak passwords', async () => {
-  await assert.rejects(() => createPasswordHash('short'), /between 14 and 1024 characters/)
+  await assert.rejects(() => createPasswordHash('short'), /at least 14 characters/)
 })
 
 test('the rate-limit address cannot be spoofed with a forged forwarding header', () => {

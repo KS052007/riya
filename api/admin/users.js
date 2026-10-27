@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       const password = String(body.password || '')
       if (!USERNAME.test(username)) return json(res, 400, { error: 'Enter a valid email or username (1–64 letters, numbers, dots, underscores, or hyphens).' })
       if (!ROLES.has(role)) return json(res, 400, { error: 'Choose a supported admin role.' })
-      if (password.length < 14 || password.length > 1024) return json(res, 400, { error: 'Set an initial password between 14 and 1024 characters.' })
+      if (password.length < 14 || password.length > 1024) return json(res, 400, { error: 'Set an initial passphrase of at least 14 characters (a few memorable words work well).' })
       const allUsers = JSON.parse(process.env.ADMIN_USERS_JSON || '[]')
       if ([...allUsers, ...managedUsers].some(user => user.username?.toLowerCase() === username.toLowerCase() && user.active !== false)) {
         return json(res, 409, { error: 'That account already exists.' })

@@ -1038,7 +1038,7 @@ export default function AdminPortal() {
                   <Field label="Email or username" required htmlFor="acc-name" wide>
                     <TextInput id="acc-name" autoComplete="off" value={newAccount.username} required onChange={event => setNewAccount({ ...newAccount, username: event.target.value })} />
                   </Field>
-                  <Field label="Initial password" required htmlFor="acc-pass" wide hint="At least 14 characters. Share it with them securely.">
+                  <Field label="Initial passphrase" required htmlFor="acc-pass" wide hint="Use a memorable passphrase of a few words (14+ characters). Share it with them securely.">
                     <PasswordInput id="acc-pass" autoComplete="new-password" minLength={14} value={newAccount.password} required onChange={event => setNewAccount({ ...newAccount, password: event.target.value })} />
                   </Field>
                   <div className="afield afield-wide">

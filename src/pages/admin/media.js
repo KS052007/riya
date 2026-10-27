@@ -4,7 +4,7 @@
 // The public site's project. Previews follow the server's project once the
 // portal learns it, so an image always resolves where it was really stored.
 export const SITE_SANITY = {
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || 'pirhl038',
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '94wv2qdl',
   dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
 }
 let target = { ...SITE_SANITY }

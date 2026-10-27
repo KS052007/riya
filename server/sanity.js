@@ -9,7 +9,7 @@ import { isIP } from 'node:net'
 // both spellings. Resolved on each call because env loads after import in dev.
 export function sanityConfig() {
   return {
-    projectId: process.env.SANITY_PROJECT_ID || process.env.SANITY_API_PROJECT_ID || 'pirhl038',
+    projectId: process.env.SANITY_PROJECT_ID || process.env.SANITY_API_PROJECT_ID || '94wv2qdl',
     dataset: process.env.SANITY_DATASET || process.env.SANITY_API_DATASET || 'production',
   }
 }

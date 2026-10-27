@@ -12,11 +12,11 @@ test('images are identified by their bytes, not their name', () => {
 })
 
 test('only this project’s Sanity CDN counts as a stored image URL', () => {
-  assert.equal(isSanityImageUrl('https://cdn.sanity.io/images/pirhl038/production/abc123-800x600.webp'), true)
+  assert.equal(isSanityImageUrl('https://cdn.sanity.io/images/94wv2qdl/production/abc123-800x600.webp'), true)
   assert.equal(isSanityImageUrl('https://cdn.sanity.io/images/otherproj/production/abc123-800x600.webp'), false)
-  assert.equal(isSanityImageUrl('https://cdn.sanity.io/images/94wv2qdl/production/abc123-800x600.webp'), false)
-  assert.equal(isSanityImageUrl('http://cdn.sanity.io/images/pirhl038/production/abc123-800x600.webp'), false)
-  assert.equal(isSanityImageUrl('https://cdn.sanity.io.evil.example/images/pirhl038/x.png'), false)
+  assert.equal(isSanityImageUrl('https://cdn.sanity.io/images/pirhl038/production/abc123-800x600.webp'), false)
+  assert.equal(isSanityImageUrl('http://cdn.sanity.io/images/94wv2qdl/production/abc123-800x600.webp'), false)
+  assert.equal(isSanityImageUrl('https://cdn.sanity.io.evil.example/images/94wv2qdl/x.png'), false)
   assert.equal(isSanityImageUrl('https://drive.google.com/file/d/abc/view'), false)
   assert.equal(isSanityImageUrl(''), false)
 })

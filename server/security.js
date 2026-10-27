@@ -89,7 +89,7 @@ export async function verifyPassword(password, encoded) {
 
 export async function createPasswordHash(password) {
   if (typeof password !== 'string' || password.length < 14 || password.length > 1024) {
-    throw new Error('Password must be between 14 and 1024 characters')
+    throw new Error('Use a passphrase of at least 14 characters (a few memorable words work well)')
   }
   const salt = randomBytes(32)
   const hash = await scrypt(password, salt, 64)

@@ -169,7 +169,6 @@ function Featured({ project, reduceMotion }) {
     <section className="bp-hero" style={{ '--tint': coverTint(project) }} aria-labelledby="bp-hero-title">
       {project.cover?.lqip && <span className="bp-wash" style={{ backgroundImage: `url(${project.cover.lqip})` }} aria-hidden="true" />}
       <div className="bp-hero-text">
-        <motion.p className="bp-tag" {...rise(0.05)}><i aria-hidden="true" /> Project of the week</motion.p>
         <motion.h2 id="bp-hero-title" className="bp-hero-title" {...rise(0.12)}>{project.title}</motion.h2>
         {project.summary && <motion.p className="bp-hero-summary" {...rise(0.2)}>{project.summary}</motion.p>}
         <motion.div className="bp-hero-actions" {...rise(0.28)}>
