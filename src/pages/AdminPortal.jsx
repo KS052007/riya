@@ -911,8 +911,8 @@ export default function AdminPortal() {
                       <Field label="Repository" htmlFor="bip-repo" wide hint="Full https:// link to the code.">
                         <TextInput id="bip-repo" type="url" value={projectDraft.repositoryUrl} placeholder="https://github.com/organization/project" onChange={event => setProjectDraft({ ...projectDraft, repositoryUrl: event.target.value })} />
                       </Field>
-                      <Field label="Cover image" htmlFor="bip-image" wide hint="Uploaded to Sanity. Shown on the project card and page.">
-                        <ImageField id="bip-image" mode="url" value={projectDraft.imageUrl} onUpload={uploadImage} onChange={next => setProjectDraft({ ...projectDraft, imageUrl: next })} />
+                      <Field label="Cover image" htmlFor="bip-image" wide hint="Uploaded to Sanity. Shown on the project card and page. Use a square (1:1) or portrait (4:5) image.">
+                        <ImageField id="bip-image" mode="url" aspect="4 / 5" ratios={[[1, 1], [4, 5]]} value={projectDraft.imageUrl} onUpload={uploadImage} onChange={next => setProjectDraft({ ...projectDraft, imageUrl: next })} />
                       </Field>
                       <Field label="Owner photo" htmlFor="bip-avatar" hint="Optional. A square photo works best.">
                         <ImageField id="bip-avatar" mode="url" aspect="1 / 1" value={projectDraft.authorAvatarUrl} onUpload={uploadImage} onChange={next => setProjectDraft({ ...projectDraft, authorAvatarUrl: next })} />

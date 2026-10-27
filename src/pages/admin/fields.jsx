@@ -437,10 +437,23 @@ export function Empty({ title, children, action }) {
   )
 }
 
+// Read an image file's natural pixel size without uploading it, so the uploader
+// can reject the wrong shape before anything leaves the browser.
+function readImageDimensions(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => { URL.revokeObjectURL(url); resolve({ width: img.naturalWidth, height: img.naturalHeight }) }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That image could not be read.')) }
+    img.src = url
+  })
+}
+
 // Image upload with a live preview. Click or drop a file; it is resized in the
 // browser, uploaded to Sanity, and stored either as a Sanity image reference
-// (mode "asset", for Sanity documents) or as its CDN URL (mode "url").
-export function ImageField({ value, mode = 'asset', onChange, onUpload, disabled, id, aspect = '16 / 9' }) {
+// (mode "asset", for Sanity documents) or as its CDN URL (mode "url"). Pass
+// `ratios` (e.g. [[1, 1], [4, 5]]) to accept only those aspect ratios.
+export function ImageField({ value, mode = 'asset', onChange, onUpload, disabled, id, aspect = '16 / 9', ratios }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [dragging, setDragging] = useState(false)
@@ -452,6 +465,15 @@ export function ImageField({ value, mode = 'asset', onChange, onUpload, disabled
     setBusy(true)
     setError('')
     try {
+      if (ratios?.length) {
+        const { width, height } = await readImageDimensions(file)
+        const ratio = width / height
+        const ok = ratios.some(([w, h]) => Math.abs(ratio - w / h) <= 0.04)
+        if (!ok) {
+          const list = ratios.map(([w, h]) => `${w}:${h}`).join(' or ')
+          throw new Error(`Use a ${list} image. This one is ${width}×${height}.`)
+        }
+      }
       const image = await onUpload(file)
       onChange(mode === 'url' ? image.url : { _type: 'image', asset: { _type: 'reference', _ref: image.assetId } })
     } catch (reason) {
@@ -475,7 +497,7 @@ export function ImageField({ value, mode = 'asset', onChange, onUpload, disabled
           <button type="button" className="aimage-empty" disabled={disabled || busy} onClick={() => input.current?.click()}>
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="10" r="1.8" /><path d="M21 16l-5.5-5.5L5 21" strokeLinejoin="round" /></svg>
             <span>{busy ? 'Uploading…' : 'Drop an image or click to upload'}</span>
-            <small>JPEG, PNG, WebP or GIF · stored in Sanity</small>
+            <small>{ratios?.length ? `${ratios.map(([w, h]) => `${w}:${h}`).join(' or ')} only · stored in Sanity` : 'JPEG, PNG, WebP or GIF · stored in Sanity'}</small>
           </button>
         )}
         {busy && preview && <span className="aimage-busy">Uploading…</span>}

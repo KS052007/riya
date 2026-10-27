@@ -47,13 +47,13 @@ if (!input.isTTY || typeof input.setRawMode !== 'function') {
   process.exit(1)
 }
 
-process.stdout.write(`Setting password for: ${username} (${role})\n`)
+process.stdout.write(`Setting passphrase for: ${username} (${role})\n`)
 const terminal = createInterface({ input, output: process.stdout, terminal: true })
 terminal.close()
 input.setRawMode(true)
 input.resume()
 let password = ''
-process.stdout.write('New password (14+ characters): ')
+process.stdout.write('New passphrase (14+ characters — a few memorable words work great): ')
 
 input.on('data', async chunk => {
   for (const character of chunk.toString()) {
@@ -77,7 +77,7 @@ input.on('data', async chunk => {
         })
         if (!replaced) next.push(value)
         writeFileSync(ENV_PATH, next.join('\n'))
-        process.stdout.write(`\nDone. Password set for ${username}.\nRestart "npm run dev", then sign in with this password.\n`)
+        process.stdout.write(`\nDone. Passphrase set for ${username}.\nRestart "npm run dev", then sign in with it.\n`)
       } catch (error) {
         process.stderr.write(`${error.message}\n`)
         process.exitCode = 1
